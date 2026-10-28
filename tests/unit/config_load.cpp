@@ -2256,6 +2256,40 @@ UMBRIEL_TEST(outputCyclicWorkspacesLoadsAndDefaultsOff) {
   CHECK(containsDiagnostic(store, "ignoring output.DP-1.cyclic_workspaces (expected boolean)"));
 }
 
+UMBRIEL_TEST(nvidiaSyncWorkaroundReloadsAndDefaultsOn) {
+  const TempConfig file;
+  ConfigStore& store = umbriel::configStore();
+  store.setRootPath(file.path(), true);
+
+  file.write("[general]\n");
+  CHECK(store.reload().success);
+  CHECK(store.config().general.nvidiaSyncWorkaround);
+
+  file.write("[general]\nnvidia_sync_workaround = false\n");
+  const auto disabled = store.reload();
+  CHECK(disabled.success);
+  CHECK(disabled.change.general);
+  CHECK(!store.config().general.nvidiaSyncWorkaround);
+
+  file.write("[general]\nnvidia_sync_workaround = true\n");
+  const auto enabled = store.reload();
+  CHECK(enabled.success);
+  CHECK(enabled.change.general);
+  CHECK(store.config().general.nvidiaSyncWorkaround);
+
+  file.write("[general]\nnvidia_sync_workaround = false\n");
+  CHECK(store.reload().success);
+  file.write("[general]\n");
+  CHECK(store.reload().success);
+  CHECK(store.config().general.nvidiaSyncWorkaround);
+
+  file.write("[general]\nnvidia_sync_workaround = \"false\"\n");
+  CHECK(store.reload().success);
+  CHECK(store.config().general.nvidiaSyncWorkaround);
+  CHECK(containsDiagnostic(store, "ignoring general.nvidia_sync_workaround (expected boolean)"));
+  CHECK(!containsDiagnostic(store, "unknown key general.nvidia_sync_workaround"));
+}
+
 UMBRIEL_TEST(xwaylandPrimaryOutputLoadsAndCanBeRemoved) {
   const TempConfig file;
   ConfigStore& store = umbriel::configStore();

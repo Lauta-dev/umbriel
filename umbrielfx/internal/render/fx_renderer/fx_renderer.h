@@ -206,6 +206,7 @@ struct fx_renderer {
   struct wlr_drm_format_set shm_texture_formats;
 
   bool is_gles3;
+  bool nvidia_sync_workaround;
 
   const char* exts_str;
   struct {

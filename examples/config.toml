@@ -33,6 +33,9 @@ files = []
 # xwayland_xsettings = false
 # Select the monitor X11 games use as primary, using a connector or monitor identity from `umbriel outputs`.
 # xwayland_primary_output = "DP-1"
+# NVIDIA outputs without explicit synchronization wait for GPU rendering by default.
+# Disable this workaround if it causes stuttering or frame drops.
+# nvidia_sync_workaround = false
 # Modal dialogs hang on their parent window and follow it. Turn this off to keep them ordinary windows.
 # attach_modal_dialogs = false
 

@@ -1047,6 +1047,8 @@ namespace umbriel {
       bool xwaylandXsettings = true;
       // Connector or monitor identity to publish as the X11 primary. Empty leaves RandR unmanaged.
       std::string xwaylandPrimaryOutput;
+      // Wait for composed NVIDIA output frames when no explicit synchronization timeline is available.
+      bool nvidiaSyncWorkaround = true;
       // Show the keybinds cheatsheet overlay on startup.
       bool showCheatsheet = true;
       // Honor activation requests by focusing and revealing the target window.

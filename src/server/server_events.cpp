@@ -983,8 +983,11 @@ namespace umbriel {
         m_overview->forceClose();
       }
       applyConfig(result.effects);
-      if (result.change.general && m_xwayland != nullptr) {
-        m_xwayland->updatePrimaryOutput();
+      if (result.change.general) {
+        fx_renderer_set_nvidia_sync_workaround(m_renderer, config().general.nvidiaSyncWorkaround);
+        if (m_xwayland != nullptr) {
+          m_xwayland->updatePrimaryOutput();
+        }
       }
       if (systemKeymapChanged && !result.effects.input) {
         applyKeyboardConfig();
