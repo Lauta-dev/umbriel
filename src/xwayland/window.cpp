@@ -210,6 +210,12 @@ namespace umbriel {
     return m_unmanaged != nullptr ? m_unmanaged->scale() : 1.0;
   }
 
+  void XwaylandWindow::handleXwmSync(uint64_t serial) {
+    if (m_unmanaged != nullptr) {
+      m_unmanaged->handleXwmSync(serial);
+    }
+  }
+
   void XwaylandWindow::destroyWrapper() {
     m_unmanaged.reset();
     if (View* view = m_view) {

@@ -28,6 +28,8 @@ namespace umbriel {
 
     // The X screen moved relative to the layout: re-place the wrapper's window.
     void syncGeometry();
+    // An event-stream barrier completed for one map of this window.
+    void handleXwmSync(uint64_t serial);
     [[nodiscard]] wlr_xwayland_surface* xsurface() const { return m_xsurface; }
     // X pixels per layout unit in the window's surface.
     [[nodiscard]] double scale() const;

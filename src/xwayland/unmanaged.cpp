@@ -29,9 +29,9 @@ namespace umbriel {
   XwaylandUnmanaged::XwaylandUnmanaged(Server& server, wlr_xwayland_surface* xsurface)
       : m_server(server), m_xsurface(xsurface) {
     m_tree = wlr_scene_tree_create(server.xwaylandUnmanagedTree());
+    wlr_scene_node_set_enabled(&m_tree->node, false);
     wlr_scene_subsurface_tree_create(m_tree, xsurface->surface);
     syncPosition();
-    wlr_scene_node_set_enabled(&m_tree->node, xsurface->surface->mapped);
 
     m_map.notify = onMap;
     wl_signal_add(&xsurface->surface->events.map, &m_map);
@@ -99,6 +99,18 @@ namespace umbriel {
   }
 
   void XwaylandUnmanaged::handleMap() {
+    wlr_scene_node_set_enabled(&m_tree->node, false);
+    syncPosition();
+    // Association property reads can buffer ConfigureNotify in libxcb without leaving the XWM fd readable.
+    // Keep the first frame hidden until the XWM has dispatched those events, rather than showing stale geometry.
+    m_pendingXwmSync = m_server.xwayland()->requestXwmSync(m_xsurface);
+  }
+
+  void XwaylandUnmanaged::handleXwmSync(uint64_t serial) {
+    if (serial == 0 || serial != m_pendingXwmSync || m_xsurface->surface == nullptr || !m_xsurface->surface->mapped) {
+      return;
+    }
+    m_pendingXwmSync = 0;
     syncPosition();
     wlr_scene_node_set_enabled(&m_tree->node, true);
     wlr_scene_node_raise_to_top(&m_tree->node);
@@ -119,6 +131,7 @@ namespace umbriel {
   }
 
   void XwaylandUnmanaged::handleUnmap() {
+    m_pendingXwmSync = 0;
     wlr_scene_node_set_enabled(&m_tree->node, false);
     releaseKeyboard();
   }

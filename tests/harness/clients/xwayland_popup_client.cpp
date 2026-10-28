@@ -216,6 +216,21 @@ namespace {
             )
         );
       }
+    } else if (line == "map-move" || line == "move-map") {
+      // Keep map and placement in one flush, without a reply that serializes the two X11 requests.
+      constexpr std::array<uint32_t, 4> geometry{930, 550, 300, 160};
+      if (line == "map-move") {
+        xcb_map_window(state.connection, state.window);
+      }
+      xcb_configure_window(
+          state.connection, state.window,
+          XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+          geometry.data()
+      );
+      if (line == "move-map") {
+        xcb_map_window(state.connection, state.window);
+      }
+      xcb_flush(state.connection);
     } else if (line == "override-direct") {
       // A client can place its popup in the same sequence that changes OR.
       // No intermediate ConfigureNotify exposes the old maximized geometry.

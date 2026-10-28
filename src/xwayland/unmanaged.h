@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <wayland-server-core.h>
 
 struct wlr_scene_tree;
@@ -27,6 +28,8 @@ namespace umbriel {
     void syncPosition();
     // Updated metadata can withdraw keyboard focus without remapping or raising the popup.
     void refreshFocusPolicy();
+    // Reveal only the map whose earlier X geometry events have passed through the window manager.
+    void handleXwmSync(uint64_t serial);
     // X pixels per layout unit in the window's surface.
     [[nodiscard]] double scale() const { return m_scale; }
 
@@ -49,6 +52,7 @@ namespace umbriel {
     wlr_xwayland_surface* m_xsurface = nullptr;
     wlr_scene_tree* m_tree = nullptr;
     double m_scale = 1.0;
+    uint64_t m_pendingXwmSync = 0;
     wl_listener m_map{};
     wl_listener m_unmap{};
     wl_listener m_setGeometry{};
