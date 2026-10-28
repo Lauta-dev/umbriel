@@ -983,6 +983,9 @@ namespace umbriel {
         m_overview->forceClose();
       }
       applyConfig(result.effects);
+      if (result.change.general && m_xwayland != nullptr) {
+        m_xwayland->updatePrimaryOutput();
+      }
       if (systemKeymapChanged && !result.effects.input) {
         applyKeyboardConfig();
       }

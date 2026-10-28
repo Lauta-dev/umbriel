@@ -6,6 +6,7 @@
 #include "input/seat.h"
 #include "server/server.h"
 #include "wlr.h"
+#include "xwayland/primary.h"
 #include "xwayland/shape.h"
 #include "xwayland/window.h"
 
@@ -77,6 +78,7 @@ namespace umbriel {
     }
     m_outputs = std::make_unique<XwaylandOutputs>(server.display(), server.outputLayout(), m_nativeResolution);
     m_shapes = std::make_unique<XwaylandShapes>(server.display());
+    m_primary = std::make_unique<XwaylandPrimary>(server.display());
     m_wlr->data = this;
     m_wlr->user_event_handler = onXEvent;
     // wlroots drops the seat whenever the window manager goes away, which happens each time the lazy Xwayland exits
@@ -119,6 +121,7 @@ namespace umbriel {
     m_wlr->user_event_handler = nullptr;
     m_wlr->data = nullptr;
     m_shapes.reset();
+    m_primary.reset();
     if (m_clientDestroy.link.next != nullptr) {
       wl_list_remove(&m_clientDestroy.link);
     }
@@ -225,6 +228,7 @@ namespace umbriel {
   }
 
   void Xwayland::handleOutputLayoutChange() {
+    updatePrimaryOutput();
     if (!m_outputs->update()) {
       return;
     }
@@ -232,6 +236,10 @@ namespace umbriel {
       window->syncGeometry();
     }
     publishXsettings();
+  }
+
+  void Xwayland::updatePrimaryOutput() {
+    m_primary->setOutput(m_outputs->primaryOutput(config().general.xwaylandPrimaryOutput));
   }
 
   void Xwayland::scheduleFocusClear() {
@@ -245,6 +253,7 @@ namespace umbriel {
   void Xwayland::onServerStart(wl_listener* listener, void* /*data*/) {
     Xwayland* self = wl_container_of(listener, self, m_serverStart); // NOLINT(modernize-use-auto)
     self->m_shapes->stop();
+    self->m_primary->stop();
     if (self->m_clientDestroy.link.next != nullptr) {
       wl_list_remove(&self->m_clientDestroy.link);
     }
@@ -266,10 +275,12 @@ namespace umbriel {
     wl_list_remove(&self->m_clientDestroy.link);
     self->m_clientDestroy.link = {};
     self->m_shapes->stop();
+    self->m_primary->stop();
   }
 
   bool Xwayland::onXEvent(wlr_xwayland* xwayland, xcb_generic_event_t* event) {
-    return static_cast<Xwayland*>(xwayland->data)->m_shapes->handleEvent(event);
+    auto* self = static_cast<Xwayland*>(xwayland->data);
+    return self->m_primary->handleEvent(event) || self->m_shapes->handleEvent(event);
   }
 
   void Xwayland::onReady(wl_listener* listener, void* /*data*/) {
@@ -311,6 +322,8 @@ namespace umbriel {
   }
 
   void Xwayland::handleReady() {
+    updatePrimaryOutput();
+    m_primary->start(m_wlr);
     m_shapes->start(m_wlr);
     const auto atoms =
         resolveAtoms<4>(m_wlr->display_name, {"_NET_ACTIVE_WINDOW", "_XSETTINGS_S0", "_XSETTINGS_SETTINGS", "MANAGER"});

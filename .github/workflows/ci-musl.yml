@@ -33,6 +33,7 @@ jobs:
             --workdir /workspace \
             alpine:edge \
             /bin/sh -eu -c '
+              # libxcb-dev supplies xcb-randr.pc and depends on the RandR runtime in libxcb.
               apk add --no-cache \
                 bash build-base dbus just meson pkgconf samurai su-exec \
                 cairo-dev libdisplay-info-dev libei-dev libxcb-dev "libxkbcommon-dev>=1.10.0" nlohmann-json pango-dev tomlplusplus-dev \

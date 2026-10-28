@@ -27,6 +27,7 @@ namespace umbriel {
   class Server;
   class XwaylandWindow;
   class XwaylandShapes;
+  class XwaylandPrimary;
 
   // Configure the window as the client asked; fields the request leaves out keep their current value.
   void grantConfigureRequest(wlr_xwayland_surface* xsurface, const wlr_xwayland_surface_configure_event* event);
@@ -68,6 +69,8 @@ namespace umbriel {
     [[nodiscard]] bool advertiseOutputManager(const wl_client* client, const wl_global* global) const;
     // Republishes the X screen and moves every X11 window to match it.
     void handleOutputLayoutChange();
+    // Resolves the configured primary monitor after a reload or output change.
+    void updatePrimaryOutput();
     // An Xwayland surface just yielded the keyboard to a native Wayland client. Clear both X focus channels after the
     // Wayland enter has reached the client, so the native client holds keyboard focus before X11 loses it.
     void scheduleFocusClear();
@@ -100,6 +103,7 @@ namespace umbriel {
     uint64_t m_inputSocketInode = 0;
     std::unique_ptr<XwaylandOutputs> m_outputs;
     std::unique_ptr<XwaylandShapes> m_shapes;
+    std::unique_ptr<XwaylandPrimary> m_primary;
     std::vector<std::unique_ptr<XwaylandWindow>> m_windows;
     uint32_t m_netActiveWindow = 0;
     // The XSETTINGS manager lives on the window manager's connection, so it neither keeps the lazy Xwayland running

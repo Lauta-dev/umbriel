@@ -133,6 +133,7 @@ xcb_dep = dependency('xcb')
 xcb_icccm_dep = dependency('xcb-icccm')
 xcb_ewmh_dep = dependency('xcb-ewmh')
 xcb_shape_dep = dependency('xcb-shape')
+xcb_randr_dep = dependency('xcb-randr')
 native_drm_policy_supported = wlr_has_drm_backend and libudev_dep.found()
 native_drm_policy_deps = []
 if native_drm_policy_supported
@@ -821,6 +822,7 @@ core_sources = files(
   'src/xwayland/window.cpp',
   'src/xwayland/unmanaged.cpp',
   'src/xwayland/outputs.cpp',
+  'src/xwayland/primary.cpp',
   'src/core/process.cpp',
   'src/core/process_syscall.cpp',
   'src/view/view_foreign.cpp',
@@ -881,6 +883,7 @@ umbriel_core_deps = [
   xcb_icccm_dep,
   xcb_ewmh_dep,
   xcb_shape_dep,
+  xcb_randr_dep,
 ]
 
 umbriel_core = static_library(
