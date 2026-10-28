@@ -11,9 +11,10 @@ namespace umbriel {
   namespace {
 
     // An override-redirect window that takes the keyboard says so through its window type. A managed menu or dropdown
-    // is focused by the window manager, as on X11; a tooltip or drag icon never is.
+    // is focused by the window manager, as on X11; a notification, tooltip, or drag icon never is.
     bool takesKeyboard(const wlr_xwayland_surface* xsurface) {
-      if (wlr_xwayland_surface_icccm_input_model(xsurface) == WLR_ICCCM_INPUT_MODEL_NONE) {
+      if (wlr_xwayland_surface_has_window_type(xsurface, WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NOTIFICATION)
+          || wlr_xwayland_surface_icccm_input_model(xsurface) == WLR_ICCCM_INPUT_MODEL_NONE) {
         return false;
       }
       if (xsurface->override_redirect) {
@@ -120,6 +121,12 @@ namespace umbriel {
   void XwaylandUnmanaged::handleUnmap() {
     wlr_scene_node_set_enabled(&m_tree->node, false);
     releaseKeyboard();
+  }
+
+  void XwaylandUnmanaged::refreshFocusPolicy() {
+    if (!takesKeyboard(m_xsurface)) {
+      releaseKeyboard();
+    }
   }
 
   void XwaylandUnmanaged::releaseKeyboard() {

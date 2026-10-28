@@ -10,9 +10,9 @@ namespace umbriel {
 
   class Server;
 
-  // An X11 context menu, tooltip, combo dropdown, or drag icon, override-redirect or typed as one. The X client
-  // positions it in layout coordinates and the compositor only shows it there, above every window. Its scene node
-  // carries no view tag, so pointer hit tests find the surface without a view.
+  // An X11 context menu, notification, tooltip, combo dropdown, or drag icon, override-redirect or typed as one. The X
+  // client positions it in layout coordinates and the compositor only shows it there, above every window. Its scene
+  // node carries no view tag, so pointer hit tests find the surface without a view.
   class XwaylandUnmanaged {
   public:
     // `xsurface` must be associated with a wl_surface.
@@ -25,6 +25,8 @@ namespace umbriel {
     // Places the window where its X geometry says, in layout coordinates, and draws it at the scale of the output
     // there.
     void syncPosition();
+    // Updated metadata can withdraw keyboard focus without remapping or raising the popup.
+    void refreshFocusPolicy();
     // X pixels per layout unit in the window's surface.
     [[nodiscard]] double scale() const { return m_scale; }
 

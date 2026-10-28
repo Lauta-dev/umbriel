@@ -16,12 +16,12 @@ namespace umbriel {
 
     constexpr Logger kLog("xwayland");
 
-    // Client-placed context menus, tooltips, dropdowns, and drag icons can omit override-redirect. EWMH MENU describes
-    // a persistent torn-off menu, so it stays managed unless it explicitly requests override-redirect.
+    // Client-placed context menus, notifications, tooltips, dropdowns, and drag icons can omit override-redirect.
+    // EWMH MENU describes a persistent torn-off menu, so it stays managed unless it requests override-redirect.
     constexpr std::array kPopupWindowTypes{
         WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DROPDOWN_MENU, WLR_XWAYLAND_NET_WM_WINDOW_TYPE_POPUP_MENU,
         WLR_XWAYLAND_NET_WM_WINDOW_TYPE_TOOLTIP,       WLR_XWAYLAND_NET_WM_WINDOW_TYPE_COMBO,
-        WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DND,
+        WLR_XWAYLAND_NET_WM_WINDOW_TYPE_DND,           WLR_XWAYLAND_NET_WM_WINDOW_TYPE_NOTIFICATION,
     };
 
     bool isPopup(const wlr_xwayland_surface* xsurface) {
@@ -145,6 +145,9 @@ namespace umbriel {
     }
     const bool popup = isPopup(m_xsurface);
     if (popup == (m_unmanaged != nullptr)) {
+      if (m_unmanaged != nullptr) {
+        m_unmanaged->refreshFocusPolicy();
+      }
       return;
     }
     if (m_view != nullptr && m_xsurface->override_redirect) {
