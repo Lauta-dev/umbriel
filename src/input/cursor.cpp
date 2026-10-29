@@ -466,7 +466,7 @@ namespace umbriel {
     if (delayMs == 0) {
       m_hotCornerTriggered = true;
       Keybind triggered = *action;
-      m_server->executeKeybindAction(triggered);
+      m_server->executeAction(triggered);
       return;
     }
     if (m_hotCornerPending) {
@@ -491,7 +491,7 @@ namespace umbriel {
         action != nullptr && cornerIndex == cursor->m_hotCornerIndex) {
       cursor->m_hotCornerTriggered = true;
       Keybind triggered = *action;
-      cursor->m_server->executeKeybindAction(triggered);
+      cursor->m_server->executeAction(triggered);
     }
     return 0;
   }

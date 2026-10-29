@@ -14,8 +14,8 @@ if [[ ! -x $POINTER ]]; then
 fi
 
 accepts() {
-  if ! out=$("$UMBRIEL" msg "$1" 2>&1); then
-    echo "expected '$1' to be accepted, got: $out"
+  if ! out=$("$UMBRIEL" msg "$@" 2>&1); then
+    echo "expected '$*' to be accepted, got: $out"
     return 1
   fi
 }
@@ -100,7 +100,7 @@ if [[ -z $one_id || -z $two_id || -z $three_id || -z $right_one_id || -z $right_
   echo "expected ids for all five configured workspaces"
   exit 1
 fi
-accepts "workspace-switch:ONE/HEADLESS-1"
+accepts workspace-switch ONE --output HEADLESS-1
 
 # Build one two-row column plus an independent source column.
 spawn_client column-top
@@ -113,8 +113,8 @@ wait_for_column_geometry
 
 spawn_client source-anchor
 wait_for_windows 3
-accepts "window-focus:$bottom_id"
-accepts window-set-primary-extent:0.667
+accepts window-focus "$bottom_id"
+accepts window-set-primary-extent 0.667
 for _ in $(seq 50); do
   normal_width=$(field_of column-bottom w)
   [[ $normal_width -ge 800 && $normal_width -le 870 ]] && break
@@ -138,7 +138,7 @@ if [[ $full_width -lt 1200 ]]; then
   exit 1
 fi
 
-accepts "column-move-to-workspace:THREE/HEADLESS-1"
+accepts column-move-to-workspace THREE --output HEADLESS-1
 wait_for_workspace column-top "$three_id"
 wait_for_workspace column-bottom "$three_id"
 wait_for_workspace source-anchor "$one_id"
@@ -175,7 +175,7 @@ wait_for_workspace column-bottom "$three_id"
 
 # A qualified selector follows the column across outputs. The immediately
 # following adjacent action must therefore resolve on the destination output.
-accepts "column-move-to-workspace:RIGHT_TWO/HEADLESS-2"
+accepts column-move-to-workspace RIGHT_TWO --output HEADLESS-2
 wait_for_workspace column-top "$right_two_id"
 wait_for_workspace column-bottom "$right_two_id"
 wait_for_workspace source-anchor "$one_id"
@@ -189,7 +189,7 @@ wait_for_column_geometry "$normal_width"
 sed -i 's/follows_focus = true/follows_focus = false/' "$UMBRIEL_CONFIG"
 "$UMBRIEL" msg config-reload > /dev/null
 top_id=$(field_of column-top id)
-accepts "window-focus:$top_id"
+accepts window-focus "$top_id"
 "$POINTER" 2560 720 click "$BTN_LEFT"
 for _ in $(seq 40); do
   [[ $(field_of column-bottom focused) == true ]] && break
@@ -212,12 +212,12 @@ spawn_client transfer-c
 wait_for_windows 4
 c_id=$(field_of transfer-c id)
 accepts window-consume-left
-accepts column-set-display:tabbed
+accepts column-set-display tabbed
 accepts window-move-down
-accepts "window-focus:$bottom_id"
+accepts window-focus "$bottom_id"
 accepts column-hide-tab-bar
-accepts "window-focus:$c_id"
-accepts column-set-display:tabbed
+accepts window-focus "$c_id"
+accepts column-set-display tabbed
 accepts column-show-tab-bar
 spawn_client transfer-d
 wait_for_windows 5
@@ -265,7 +265,7 @@ groups_before=$(transfer_state)
 # destination's seeded one-tab group with the source's display, not join it.
 printf '\n[layout.tabs]\ndefault_display = "tabbed"\n' >> "$UMBRIEL_CONFIG"
 accepts config-reload
-accepts "column-move-to-workspace:TWO/HEADLESS-1"
+accepts column-move-to-workspace TWO --output HEADLESS-1
 wait_for_workspace transfer-d "$two_id"
 assert_transfer_groups
 accepts column-move-to-output-right
@@ -281,24 +281,24 @@ for title in column-top column-bottom transfer-c; do
 done
 assert_transfer_groups
 wait_for_workspace source-anchor "$one_id"
-accepts "column-move-to-workspace:THREE/HEADLESS-1"
+accepts column-move-to-workspace THREE --output HEADLESS-1
 wait_for_workspace transfer-d "$three_id"
 
 # A master area can retain a whole-column group and its hidden bar, but not
 # separate groups inside one area. Remove the second group to make it representable.
-accepts "window-focus:$d_id"
+accepts window-focus "$d_id"
 accepts window-close
 wait_for_windows 4
-accepts "window-focus:$c_id"
+accepts window-focus "$c_id"
 accepts window-close
 wait_for_windows 3
-accepts "window-focus:$bottom_id"
+accepts window-focus "$bottom_id"
 "$UMBRIEL" settle
 whole_group_top=$(field_of column-bottom y)
-accepts "workspace-switch:TWO/HEADLESS-1"
-accepts workspace-set-layout:master
-accepts "workspace-switch:THREE/HEADLESS-1"
-accepts "column-move-to-workspace:TWO/HEADLESS-1"
+accepts workspace-switch TWO --output HEADLESS-1
+accepts workspace-set-layout master
+accepts workspace-switch THREE --output HEADLESS-1
+accepts column-move-to-workspace TWO --output HEADLESS-1
 wait_for_workspace column-bottom "$two_id"
 "$UMBRIEL" settle
 if ! "$UMBRIEL" windows --json | jq -e --argjson top "$whole_group_top" '
@@ -320,7 +320,7 @@ accepts config-reload
 spawn_client master-extra
 wait_for_windows 4
 extra_id=$(field_of master-extra id)
-accepts "window-focus:$bottom_id"
+accepts window-focus "$bottom_id"
 "$UMBRIEL" settle
 master_state() {
   "$UMBRIEL" windows --json | jq -c '
@@ -328,11 +328,11 @@ master_state() {
     | sort_by(.title) | map({title, y, w, h, tabbed, tab_index, tab_hidden, active})'
 }
 master_before=$(master_state)
-accepts "workspace-switch:RIGHT_ONE/HEADLESS-2"
-accepts workspace-set-layout:master
-accepts "workspace-switch:RIGHT_TWO/HEADLESS-2"
-accepts workspace-set-layout:master
-accepts "workspace-switch:TWO/HEADLESS-1"
+accepts workspace-switch RIGHT_ONE --output HEADLESS-2
+accepts workspace-set-layout master
+accepts workspace-switch RIGHT_TWO --output HEADLESS-2
+accepts workspace-set-layout master
+accepts workspace-switch TWO --output HEADLESS-1
 accepts workspace-move-to-output-right
 wait_for_output column-bottom HEADLESS-2
 transferred_workspace=$(field_of column-bottom workspace)
@@ -344,28 +344,28 @@ if [[ $(master_state) != "$master_before" ]]; then
   exit 1
 fi
 # The reverse transfer also exercises master-to-scrolling group conversion.
-accepts "workspace-switch:TWO/HEADLESS-1"
-accepts workspace-set-layout:scrolling
-accepts "workspace-switch:THREE/HEADLESS-1"
-accepts workspace-set-layout:scrolling
-accepts "window-focus-warp:$bottom_id"
+accepts workspace-switch TWO --output HEADLESS-1
+accepts workspace-set-layout scrolling
+accepts workspace-switch THREE --output HEADLESS-1
+accepts workspace-set-layout scrolling
+accepts window-focus-warp "$bottom_id"
 accepts workspace-move-to-output-left
 wait_for_output column-bottom HEADLESS-1
 transferred_workspace=$(field_of column-bottom workspace)
 wait_for_workspace column-top "$transferred_workspace"
 wait_for_workspace master-extra "$transferred_workspace"
-accepts "window-focus:$extra_id"
+accepts window-focus "$extra_id"
 accepts window-close
 wait_for_windows 3
-accepts "window-focus:$bottom_id"
-accepts "column-move-to-workspace:THREE/HEADLESS-1"
+accepts window-focus "$bottom_id"
+accepts column-move-to-workspace THREE --output HEADLESS-1
 wait_for_workspace column-bottom "$three_id"
-accepts "workspace-switch:RIGHT_TWO/HEADLESS-2"
-accepts workspace-set-layout:scrolling
-accepts "workspace-switch:THREE/HEADLESS-1"
+accepts workspace-switch RIGHT_TWO --output HEADLESS-2
+accepts workspace-set-layout scrolling
+accepts workspace-switch THREE --output HEADLESS-1
 
 # A normal source stays normal even when the destination creates tabbed areas.
-accepts column-set-display:normal
+accepts column-set-display normal
 accepts column-move-to-output-right
 wait_for_workspace column-bottom "$right_two_id"
 "$UMBRIEL" settle
@@ -373,10 +373,10 @@ if [[ $(field_of column-top tabbed) != false || $(field_of column-bottom tabbed)
   echo "destination tabbed default changed a normal source column's display"
   exit 1
 fi
-accepts "workspace-switch:TWO/HEADLESS-1"
-accepts workspace-set-layout:master
-accepts "workspace-switch:RIGHT_TWO/HEADLESS-2"
-accepts "column-move-to-workspace:TWO/HEADLESS-1"
+accepts workspace-switch TWO --output HEADLESS-1
+accepts workspace-set-layout master
+accepts workspace-switch RIGHT_TWO --output HEADLESS-2
+accepts column-move-to-workspace TWO --output HEADLESS-1
 wait_for_workspace column-bottom "$two_id"
 "$UMBRIEL" settle
 if [[ $(field_of column-top tabbed) != false || $(field_of column-bottom tabbed) != false ]]; then
@@ -385,11 +385,11 @@ if [[ $(field_of column-top tabbed) != false || $(field_of column-bottom tabbed)
 fi
 
 # Dwindle cannot represent groups and keeps every transferred member visible.
-accepts column-set-display:tabbed
-accepts "workspace-switch:RIGHT_TWO/HEADLESS-2"
-accepts workspace-set-layout:dwindle
-accepts "workspace-switch:TWO/HEADLESS-1"
-accepts "column-move-to-workspace:RIGHT_TWO/HEADLESS-2"
+accepts column-set-display tabbed
+accepts workspace-switch RIGHT_TWO --output HEADLESS-2
+accepts workspace-set-layout dwindle
+accepts workspace-switch TWO --output HEADLESS-1
+accepts column-move-to-workspace RIGHT_TWO --output HEADLESS-2
 wait_for_workspace column-top "$right_two_id"
 wait_for_workspace column-bottom "$right_two_id"
 "$UMBRIEL" settle

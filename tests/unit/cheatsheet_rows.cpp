@@ -208,7 +208,7 @@ UMBRIEL_TEST(numericWorkspaceNamesStayDistinctFromPositionalBinds) {
   const auto rows = buildCheatsheetRows(binds);
   CHECK_EQ(rows.size(), size_t{2});
   CHECK(std::ranges::any_of(rows, [](const CheatsheetRow& row) { return row.action.ends_with(": 2"); }));
-  CHECK(std::ranges::any_of(rows, [](const CheatsheetRow& row) { return row.action.ends_with(": \"2\""); }));
+  CHECK(std::ranges::any_of(rows, [](const CheatsheetRow& row) { return row.action.ends_with(": --name 2"); }));
 }
 
 UMBRIEL_TEST(numericNamedWorkspaceBindsDoNotCollapseAsAPositionalRun) {
@@ -386,10 +386,10 @@ UMBRIEL_TEST(degenerateInputsAreSafe) {
 
 UMBRIEL_TEST(effectActionLabelsPreserveSelectorsAndTargets) {
   for (const auto& [action, label] : std::vector<std::pair<std::string, std::string>>{
-           {"effect-window-cycle:/window-1", "effect-window-cycle: /window-1"},
-           {"effect-border-set:border/window-1", "effect-border-set: border/window…"},
-           {"effect-screen-set:cinema/vendor/panel", "effect-screen-set: cinema/vendor…"},
-           {"effect-cursor-set:halo", "effect-cursor-set: halo"},
+           {"effect-window-cycle --window window-1", "effect-window-cycle: --window wi…"},
+           {"effect-border-set border --window window-1", "effect-border-set: border --wind…"},
+           {"effect-screen-set cinema --output vendor/panel", "effect-screen-set: cinema --outp…"},
+           {"effect-cursor-set halo", "effect-cursor-set: halo"},
            {"effect-cursor-cycle", "effect-cursor-cycle"}
        }) {
     Keybind binding;

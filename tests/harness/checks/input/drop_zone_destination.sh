@@ -50,13 +50,13 @@ title_bar_wait_field destination-independent workspace HEADLESS-2:1
 title_bar_wait_field destination-independent region null
 title_bar_wait_field destination-independent w 480
 title_bar_wait_field destination-independent h 300
-"$UMBRIEL" msg window-set-region:right >/dev/null
+"$UMBRIEL" msg window-set-region right >/dev/null
 title_bar_wait_field destination-independent region right
 title_bar_wait_box destination-independent 628x704+1924+8
 "$UMBRIEL" msg window-clear-region >/dev/null
 title_bar_wait_field destination-independent region null
 
-"$UMBRIEL" msg workspace-set-layout:scrolling >/dev/null
+"$UMBRIEL" msg workspace-set-layout scrolling >/dev/null
 "$UMBRIEL_FRACTIONAL_CLIENT" destination-policy 480 300 >"$UMBRIEL_RUNTIME_DIR/policy.log" 2>&1 &
 title_bar_wait_field destination-policy workspace HEADLESS-1:1
 title_bar_wait_field destination-policy floating true

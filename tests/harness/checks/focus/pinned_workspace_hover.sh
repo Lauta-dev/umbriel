@@ -61,7 +61,7 @@ spawn_client pinned-hover 300 200
 wait_for_count 2
 wait_for_active pinned-hover
 
-"$UMBRIEL" msg workspace-switch:2 > /dev/null
+"$UMBRIEL" msg workspace-switch 2 > /dev/null
 spawn_client workspace-two
 wait_for_count 3
 wait_for_active workspace-two
@@ -71,7 +71,7 @@ wait_for_active workspace-two
 # sets up that state without depending on how the workspace switch itself selected focus.
 "$POINTER" "$OUTPUT_W" "$OUTPUT_H" move 200 200
 pin_id=$(windows | jq -r '.[] | select(.title == "pinned-hover") | .id')
-"$UMBRIEL" msg "window-focus:$pin_id" > /dev/null
+"$UMBRIEL" msg window-focus "$pin_id" > /dev/null
 wait_for_active pinned-hover
 
 # Workspace 2 still remembers workspace-two. That remembered state must not suppress the real seat-focus handoff.

@@ -37,8 +37,8 @@ for change in option layout workspace_disabled workspace_tiling; do
   destination_mode=stacking
   [[ $change != workspace_tiling ]] || destination_mode=scrolling
   write_policy true "$destination_mode"
-  "$UMBRIEL" msg workspace-switch:1 >/dev/null
-  "$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+  "$UMBRIEL" msg workspace-switch 1 >/dev/null
+  "$UMBRIEL" msg workspace-set-layout stacking >/dev/null
   title=drop-zone-policy-$change
   "$UMBRIEL_FRACTIONAL_CLIENT" "$title" 480 300 >"$UMBRIEL_RUNTIME_DIR/$change.log" 2>&1 &
   title_bar_wait_box "$title" 480x300+173+109
@@ -57,9 +57,9 @@ for change in option layout workspace_disabled workspace_tiling; do
   if [[ $change == option ]]; then
     write_policy false
   elif [[ $change == layout ]]; then
-    "$UMBRIEL" msg workspace-set-layout:scrolling >/dev/null
+    "$UMBRIEL" msg workspace-set-layout scrolling >/dev/null
   else
-    "$UMBRIEL" msg workspace-switch:2 >/dev/null
+    "$UMBRIEL" msg workspace-switch 2 >/dev/null
   fi
   "$UMBRIEL" settle >/dev/null
   grim "$UMBRIEL_RUNTIME_DIR/disabled-$change.png"
@@ -77,7 +77,7 @@ for change in option layout workspace_disabled workspace_tiling; do
     title_bar_wait_field "$title" workspace HEADLESS-1:2
   fi
   if [[ $change == option ]]; then
-    "$UMBRIEL" msg window-set-region:left >/dev/null
+    "$UMBRIEL" msg window-set-region left >/dev/null
     title_bar_wait_field "$title" region left
     write_policy false
     title_bar_wait_field "$title" region left

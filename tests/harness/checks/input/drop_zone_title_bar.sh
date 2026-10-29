@@ -55,7 +55,7 @@ check_frame() {
 for state in placed maximized; do
   for phase in held released; do
     if [[ $state == placed ]]; then
-      "$UMBRIEL" msg window-set-region:left >/dev/null
+      "$UMBRIEL" msg window-set-region left >/dev/null
       title_bar_wait_box region-frame 628x676+8+36
     else
       "$UMBRIEL" msg window-toggle-maximize >/dev/null

@@ -13,7 +13,7 @@ insert_hint = "#FF00FFFF"
 CONFIG
 "$UMBRIEL" msg config-reload >/dev/null
 "$UMBRIEL" msg output-focus-next >/dev/null
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 destination=$("$UMBRIEL" workspaces --json | jq -r '.[] | select(.focused) | .output')
 "$UMBRIEL" msg output-focus-next >/dev/null
 "$UMBRIEL_FRACTIONAL_CLIENT" dragged 480 300 >"$UMBRIEL_RUNTIME_DIR/dragged.log" 2>&1 &
@@ -32,10 +32,10 @@ hint=$("$UMBRIEL_PIXEL_PROBE" "$UMBRIEL_RUNTIME_DIR/held.png" bbox 'r > 0.8 && g
 pointer_release
 title_bar_wait_field dragged floating true
 [[ $(title_bar_window dragged | jq -r .workspace) == "$destination:"* ]]
-"$UMBRIEL" msg workspace-set-layout:scrolling >/dev/null
+"$UMBRIEL" msg workspace-set-layout scrolling >/dev/null
 title_bar_wait_field dragged floating false
 # Title bars move policy floats without a modifier.
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 title_bar_wait_field dragged floating true
 "$UMBRIEL" settle >/dev/null
 read -r x y < <(title_bar_window dragged | jq -r '"\(.x + 80) \(.y - 14)"')

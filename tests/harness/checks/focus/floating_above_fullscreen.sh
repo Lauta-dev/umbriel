@@ -159,7 +159,7 @@ sed -i 's/^follows_mouse = true$/follows_mouse = false/' "$UMBRIEL_CONFIG"
 "$UMBRIEL" msg config-reload >/dev/null
 
 float_id=$(windows | jq -r '.[] | select(.title == "focused-float") | .id')
-"$UMBRIEL" msg "window-focus:$float_id" >/dev/null
+"$UMBRIEL" msg window-focus "$float_id" >/dev/null
 capture
 assert_active focused-float
 assert_pixel 700 260 "0 255 0" "refocusing the float did not reveal it again"
@@ -167,13 +167,13 @@ assert_pixel 300 260 "255 0 0" "refocusing the float did not reveal its floating
 
 # Focusing an ordinary existing float uses the same stacking behavior as an opening focus rule.
 default_id=$(windows | jq -r '.[] | select(.title == "default-focus-float") | .id')
-"$UMBRIEL" msg "window-focus:$default_id" >/dev/null
+"$UMBRIEL" msg window-focus "$default_id" >/dev/null
 capture
 assert_active default-focus-float
 assert_pixel 1050 260 "255 0 255" "explicit focus did not reveal a default-focus float"
 
 # Dragging reparents a float temporarily, but its raised peers must remain visible.
-"$UMBRIEL" msg "window-focus:$float_id" >/dev/null
+"$UMBRIEL" msg window-focus "$float_id" >/dev/null
 pointer_hold 1280 720 move 700 260 mod super press 272 move 760 310 -- release 272 mod none
 capture
 assert_pixel 760 310 "0 255 0" "dragging the focused float put it behind fullscreen"
@@ -202,16 +202,16 @@ assert_pixel 760 310 "0 255 0" "leaving fullscreen did not restore the raised fl
 wait_for_absent focused-float
 "$UMBRIEL" settle >/dev/null
 main_id=$(windows | jq -r '.[] | select(.title == "fullscreen-main") | .id')
-"$UMBRIEL" msg "window-focus:$main_id" >/dev/null
+"$UMBRIEL" msg window-focus "$main_id" >/dev/null
 capture
 assert_active fullscreen-main
 assert_pixel 300 260 "0 0 255" "closing a raised float left its peers above refocused fullscreen"
-"$UMBRIEL" msg "window-focus:$default_id" >/dev/null
+"$UMBRIEL" msg window-focus "$default_id" >/dev/null
 capture
 assert_active default-focus-float
 assert_pixel 1050 260 "255 0 255" "the default-focus float did not raise before moving"
-"$UMBRIEL" msg window-move-to-workspace-silent:2 >/dev/null
-"$UMBRIEL" msg "window-focus:$main_id" >/dev/null
+"$UMBRIEL" msg window-move-to-workspace-silent 2 >/dev/null
+"$UMBRIEL" msg window-focus "$main_id" >/dev/null
 capture
 assert_active fullscreen-main
 assert_pixel 1050 260 "0 0 255" "moving a raised float left stale content over fullscreen"

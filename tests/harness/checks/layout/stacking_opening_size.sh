@@ -23,7 +23,7 @@ title_bar_wait_box automatic-size 1201x676+39+36
 printf 'resize 640 360\n' >&9
 title_bar_wait_box automatic-size 640x360+320+194
 # Moving the window takes ownership of its position, so a later client resize must not re-center it.
-"$UMBRIEL" msg window-move-to:top_left/100/100 >/dev/null
+"$UMBRIEL" msg window-move-to top_left 100 100 >/dev/null
 title_bar_wait_box automatic-size 640x360+100+100
 printf 'resize 500 300\n' >&9
 title_bar_wait_box automatic-size 500x300+100+100

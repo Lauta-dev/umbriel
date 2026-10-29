@@ -21,9 +21,9 @@ CONFIG
 "$UMBRIEL_FRACTIONAL_CLIENT" region-ineligible 480 300 >"$UMBRIEL_RUNTIME_DIR/client.log" 2>&1 &
 title_bar_wait_box region-ineligible 480x300+173+109
 for mode in scrolling dwindle master; do
-  "$UMBRIEL" msg "workspace-set-layout:$mode" >/dev/null
+  "$UMBRIEL" msg workspace-set-layout "$mode" >/dev/null
   before=$(title_bar_window region-ineligible)
-  if "$UMBRIEL" msg window-set-region:left >"$UMBRIEL_RUNTIME_DIR/rejected.log" 2>&1; then
+  if "$UMBRIEL" msg window-set-region left >"$UMBRIEL_RUNTIME_DIR/rejected.log" 2>&1; then
     echo "region placement accepted a floating window above $mode"
     exit 1
   fi

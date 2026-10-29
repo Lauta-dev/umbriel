@@ -367,6 +367,7 @@ namespace umbriel {
   enum class ActionArgKind : uint8_t {
     None,
     Command,
+    Submap,
     Fraction,
     Workspace,
     Output,
@@ -393,7 +394,7 @@ namespace umbriel {
 
   struct ActionSpec {
     std::string_view name;  // e.g. "spawn", "workspace-switch", "window-close"
-    std::string_view param; // "" for simple, "<cmd>" / "<workspace>[/<output>]" for parameterized
+    std::string_view param; // "" for simple, "<cmd...>" / "<workspace> [--output <output>]" for parameterized
     // One line, no trailing period. `umbriel msg --help` and docs/user/actions.md render it verbatim, and a unit test
     // fails when the doc table and this table disagree.
     std::string_view summary;
@@ -417,11 +418,30 @@ namespace umbriel {
   // default-constructed on any malformed input.
   bool parseChord(std::string_view chord, Keybind& output);
 
-  // Parse an action such as "window-close", "spawn:foot", "window-set-primary-extent:0.5", or
-  // "workspace-switch:2/DP-1", writing the action and its payload into `output` without touching the trigger fields.
-  // Numeric workspace selectors are positions; surround a name with double quotes when the name itself contains only
-  // digits.
+  // Parse a config action string such as "window-close", "spawn foot -e htop", "window-set-primary-extent 0.5",
+  // "workspace-switch 2 --output DP-1", or "workspace-switch --name 2", writing the action and its payload into
+  // `output` without touching the trigger fields. Words split like a shell (see splitActionString); `spawn` keeps the
+  // raw rest of the string as its command.
   bool parseAction(std::string_view value, Keybind& output);
+
+  // The same grammar over words that are already split, as `umbriel msg` receives them. `words[0]` is the action name;
+  // a `spawn` command is the remaining words joined with spaces.
+  bool parseActionWords(std::span<const std::string> words, Keybind& output);
+
+  // Splits a config action string into words: whitespace separates words outside quotes, '…' is literal, "…" honours
+  // \" and \\, and a backslash outside quotes escapes the next character. Adjacent pieces join into one word. Returns
+  // nullopt on an unterminated quote or a trailing lone backslash.
+  [[nodiscard]] std::optional<std::vector<std::string>> splitActionString(std::string_view text);
+
+  // Argument values every action encoding shares, so the word grammar and the IPC action request accept the same set.
+  [[nodiscard]] std::optional<LayoutMode> layoutModeNamed(std::string_view name);
+  [[nodiscard]] std::string_view layoutModeName(LayoutMode mode);
+  // A primary or secondary extent: 0.1 up to the widest scrolling column.
+  [[nodiscard]] bool validActionFraction(double fraction);
+  // A signed, non-zero extent change of at most 0.9.
+  [[nodiscard]] bool validActionFractionDelta(double delta);
+  // The span the config's `output.<name>.sdr_white` accepts.
+  [[nodiscard]] bool validSdrWhiteNits(double nits);
 
   // Named action roots only; suppression and current-pool cycle have no named reference.
   struct EffectActionReference {
@@ -432,6 +452,8 @@ namespace umbriel {
   [[nodiscard]] std::optional<EffectActionReference> effectActionReference(const Keybind& bind);
 
   std::span<const ActionSpec> actionSpecs();
+  // The spec with exactly this name, or null.
+  [[nodiscard]] const ActionSpec* findActionSpec(std::string_view name);
 
   // The binds used when no config file supplies any.
   std::vector<Keybind> defaultKeybinds();

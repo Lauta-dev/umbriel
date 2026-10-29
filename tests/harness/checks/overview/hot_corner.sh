@@ -56,7 +56,7 @@ follows_mouse = false
 [hot_corners.top_left]
 enabled = true
 delay_ms = 100
-action = "workspace-switch:2/HEADLESS-1"
+action = "workspace-switch 2 --output HEADLESS-1"
 EOF
 "$UMBRIEL" msg config-reload > /dev/null
 
@@ -69,7 +69,7 @@ done
 # Control: the corner works on the desktop.
 pointer move 0 0 pause 250
 wait_for_workspace 2 "corner did not fire on the desktop"
-"$UMBRIEL" msg workspace-switch:1/HEADLESS-1 > /dev/null
+"$UMBRIEL" msg workspace-switch 1 --output HEADLESS-1 > /dev/null
 wait_for_workspace 1 "could not return to workspace 1"
 pointer move 640 360
 
@@ -80,7 +80,7 @@ wait_for_workspace 2 "corner did not fire in the overview"
 # The shell's overview chrome is an exclusive-keyboard layer mapped over the overview (Noctalia's type-to-launch
 # keyboard capture). It is part of the overview, not a modal, so the corner must keep firing beside it.
 "$UMBRIEL" msg overview-close > /dev/null
-"$UMBRIEL" msg workspace-switch:1/HEADLESS-1 > /dev/null
+"$UMBRIEL" msg workspace-switch 1 --output HEADLESS-1 > /dev/null
 wait_for_workspace 1 "could not return to workspace 1"
 "$LAYER" HEADLESS-1 40 keyboard=exclusive > "$UMBRIEL_RUNTIME_DIR/hot-corner-layer.log" 2>&1 &
 layer_pid=$!
@@ -92,7 +92,7 @@ wait_for_workspace 2 "corner did not fire in the overview beside an exclusive-ke
 
 # The modal gate itself stays: on the desktop the same focused exclusive layer owns the corner's input.
 "$UMBRIEL" msg overview-close > /dev/null
-"$UMBRIEL" msg workspace-switch:1/HEADLESS-1 > /dev/null
+"$UMBRIEL" msg workspace-switch 1 --output HEADLESS-1 > /dev/null
 wait_for_workspace 1 "could not return to workspace 1"
 pointer move 640 360
 pointer move 0 0 pause 250

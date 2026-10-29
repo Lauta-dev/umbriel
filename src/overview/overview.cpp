@@ -3255,7 +3255,7 @@ namespace umbriel {
     auto dispatch = [this](KeybindAction action) {
       Keybind bind;
       bind.action = action;
-      return m_server->executeKeybindAction(bind);
+      return m_server->executeAction(bind);
     };
     // Local windows first, exactly like the composite focus actions. Only an arrow
     // pointing along the output's workspace axis falls through to a workspace step.
