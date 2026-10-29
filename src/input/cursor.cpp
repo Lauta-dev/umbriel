@@ -372,7 +372,12 @@ namespace umbriel {
 
   const Keybind* Cursor::hotCornerAction(size_t* cornerIndex) const {
     const Config::HotCorners& configured = config().hotCorners;
-    if (!isPassthrough() || m_server->sessionLocked() || m_server->exclusiveKeyboardLayer() != nullptr) {
+    // The open overview owns the pointer regardless of exclusive-keyboard layers (a shell may keep a keyboard capture
+    // over it), so those layers do not block corners there. A closing overview follows the desktop rule.
+    const bool overviewOpen = m_server->overview() != nullptr && m_server->overview()->interactive();
+    if (!isPassthrough()
+        || m_server->sessionLocked()
+        || (!overviewOpen && m_server->exclusiveKeyboardLayer() != nullptr)) {
       return nullptr;
     }
     const wlr_seat* seat = m_server->seat()->wlr();
