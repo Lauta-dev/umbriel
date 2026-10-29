@@ -6,7 +6,7 @@
 #include "config/effects.h"
 #include "config/window_position.h"
 #include "layout/layout.h"
-#include "view/snap.h"
+#include "view/window_region.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -210,8 +210,8 @@ namespace umbriel {
     ScratchpadWindowShowPrevious,
     LayoutToggleSplit,
     OutputSdrWhite,
-    WindowSnap,
-    WindowUnsnap,
+    WindowSetRegion,
+    WindowClearRegion,
     Count,
   };
 
@@ -262,12 +262,12 @@ namespace umbriel {
   struct LayoutModeArg {
     std::optional<LayoutMode> mode; // nullopt toggles through toggleSequence
     std::vector<LayoutMode>
-        toggleSequence; // distinct modes in toggle order; empty = scrolling, dwindle, master, floating
+        toggleSequence; // distinct modes in toggle order; empty = scrolling, dwindle, master, stacking
     bool operator==(const LayoutModeArg&) const = default;
   };
-  struct SnapRegionArg {
-    SnapRegion region = SnapRegion::Left;
-    bool operator==(const SnapRegionArg&) const = default;
+  struct WindowRegionArg {
+    WindowRegion region = WindowRegion::Left;
+    bool operator==(const WindowRegionArg&) const = default;
   };
   struct ColumnDisplayArg {
     ColumnDisplay display = ColumnDisplay::Normal;
@@ -317,7 +317,7 @@ namespace umbriel {
   using KeybindPayload = std::variant<
       std::monostate, SpawnArg, SubmapArg, FractionArg, WorkspaceArg, OutputArg, ScratchpadArg, WindowIdArg,
       LayoutModeArg, ColumnDisplayArg, TabIndexArg, QuitArg, EffectWindowArg, EffectScreenArg, EffectCursorArg,
-      SdrWhiteArg, WindowMoveToArg, WindowMoveByArg, SnapRegionArg>;
+      SdrWhiteArg, WindowMoveToArg, WindowMoveByArg, WindowRegionArg>;
 
   struct Keybind {
     // What triggers the bind.
@@ -376,7 +376,7 @@ namespace umbriel {
     OptionalWindowId,
     FractionDelta,
     LayoutMode,
-    SnapRegion,
+    WindowRegion,
     ColumnDisplay,
     TabIndex,
     SkipConfirmation,

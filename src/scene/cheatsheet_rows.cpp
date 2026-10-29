@@ -205,8 +205,8 @@ namespace {
               return "dwindle";
             case umbriel::LayoutMode::Master:
               return "master";
-            case umbriel::LayoutMode::Floating:
-              return "floating";
+            case umbriel::LayoutMode::Stacking:
+              return "stacking";
             }
             return "scrolling";
           };
@@ -223,9 +223,9 @@ namespace {
           return label;
         }
         return name;
-      case umbriel::ActionArgKind::SnapRegion:
-        if (const auto* arg = umbriel::payloadIf<umbriel::SnapRegionArg>(bind)) {
-          return name + ": " + std::string(umbriel::snapRegionName(arg->region));
+      case umbriel::ActionArgKind::WindowRegion:
+        if (const auto* arg = umbriel::payloadIf<umbriel::WindowRegionArg>(bind)) {
+          return name + ": " + std::string(umbriel::windowRegionName(arg->region));
         }
         return name;
       case umbriel::ActionArgKind::ColumnDisplay:
@@ -430,8 +430,8 @@ namespace {
     case A::WindowModifyHeightDown:
     case A::WindowCycleSecondaryExtent:
     case A::WindowCycleSecondaryExtentBack:
-    case A::WindowSnap:
-    case A::WindowUnsnap:
+    case A::WindowSetRegion:
+    case A::WindowClearRegion:
     case A::WindowCenter:
     case A::WindowMoveTo:
     case A::WindowMoveBy:

@@ -741,7 +741,7 @@ UMBRIEL_TEST(payloadAlternativeMatchesTheDeclaredArgKind) {
     case ActionArgKind::LayoutMode:
       input += ":toggle";
       break;
-    case ActionArgKind::SnapRegion:
+    case ActionArgKind::WindowRegion:
       input += ":left";
       break;
     case ActionArgKind::ColumnDisplay:
@@ -796,8 +796,8 @@ UMBRIEL_TEST(payloadAlternativeMatchesTheDeclaredArgKind) {
     case ActionArgKind::LayoutMode:
       CHECK(umbriel::payloadIf<umbriel::LayoutModeArg>(bind) != nullptr);
       break;
-    case ActionArgKind::SnapRegion:
-      CHECK(umbriel::payloadIf<umbriel::SnapRegionArg>(bind) != nullptr);
+    case ActionArgKind::WindowRegion:
+      CHECK(umbriel::payloadIf<umbriel::WindowRegionArg>(bind) != nullptr);
       break;
     case ActionArgKind::ColumnDisplay:
       CHECK(umbriel::payloadIf<umbriel::ColumnDisplayArg>(bind) != nullptr);
@@ -886,7 +886,7 @@ UMBRIEL_TEST(everyActionSpecRoundTripsThroughParseAction) {
     case ActionArgKind::LayoutMode:
       input += ":toggle";
       break;
-    case ActionArgKind::SnapRegion:
+    case ActionArgKind::WindowRegion:
       input += ":left";
       break;
     case ActionArgKind::ColumnDisplay:
@@ -1060,7 +1060,7 @@ UMBRIEL_TEST(everyAdvertisedActionParsesWithItsDeclaredArgument) {
       return ":0.1";
     case ActionArgKind::LayoutMode:
       return ":scrolling";
-    case ActionArgKind::SnapRegion:
+    case ActionArgKind::WindowRegion:
       return ":top_left";
     case ActionArgKind::ColumnDisplay:
       return ":normal";
@@ -1113,8 +1113,8 @@ UMBRIEL_TEST(everyAdvertisedActionParsesWithItsDeclaredArgument) {
     case ActionArgKind::FractionDelta:
       return "<delta>";
     case ActionArgKind::LayoutMode:
-      return "<scrolling|dwindle|master|floating|toggle[:mode1,mode2,...]>";
-    case ActionArgKind::SnapRegion:
+      return "<scrolling|dwindle|master|stacking|toggle[:mode1,mode2,...]>";
+    case ActionArgKind::WindowRegion:
       return "<left|right|top|bottom|top_left|top_right|bottom_left|bottom_right>";
     case ActionArgKind::ColumnDisplay:
       return "<normal|tabbed>";
@@ -1317,36 +1317,43 @@ UMBRIEL_TEST(windowMoveByActionRejectMalformedArgs) {
   CHECK(!parseAction("window-move-by:10/10/", bind));
 }
 
-UMBRIEL_TEST(parsesFloatingLayoutAndCustomCycle) {
+UMBRIEL_TEST(parsesStackingLayoutAndCustomCycle) {
   Keybind bind;
-  CHECK(parseAction("workspace-set-layout:floating", bind));
+  CHECK(parseAction("workspace-set-layout:stacking", bind));
   auto* arg = umbriel::payloadIf<umbriel::LayoutModeArg>(bind);
-  CHECK(arg != nullptr && arg->mode == umbriel::LayoutMode::Floating);
-  CHECK(parseAction("workspace-set-layout:toggle:floating,scrolling", bind));
+  CHECK(arg != nullptr && arg->mode == umbriel::LayoutMode::Stacking);
+  CHECK(parseAction("workspace-set-layout:toggle:stacking,scrolling", bind));
   arg = umbriel::payloadIf<umbriel::LayoutModeArg>(bind);
   CHECK(arg != nullptr && !arg->mode.has_value());
   CHECK(arg != nullptr && arg->toggleSequence.size() == 2);
-  CHECK(arg != nullptr && arg->toggleSequence[0] == umbriel::LayoutMode::Floating);
+  CHECK(arg != nullptr && arg->toggleSequence[0] == umbriel::LayoutMode::Stacking);
   CHECK(arg != nullptr && arg->toggleSequence[1] == umbriel::LayoutMode::Scrolling);
+  CHECK(!parseAction("workspace-set-layout:floating", bind));
+  CHECK(!parseAction("workspace-set-layout:toggle:scrolling,floating", bind));
+  CHECK(parseAction("window-toggle-floating", bind));
+  CHECK(parseAction("window-focus-switch-floating", bind));
 }
 
-UMBRIEL_TEST(parsesFloatingSnapActions) {
+UMBRIEL_TEST(parsesRegionActionsAndRejectsRemovedNames) {
   Keybind bind;
-  CHECK(parseAction("window-snap:top_left", bind));
-  CHECK(bind.action == KeybindAction::WindowSnap);
-  auto* arg = umbriel::payloadIf<umbriel::SnapRegionArg>(bind);
-  CHECK(arg != nullptr && arg->region == umbriel::SnapRegion::TopLeft);
-  CHECK(parseAction("window-snap:top", bind));
-  arg = umbriel::payloadIf<umbriel::SnapRegionArg>(bind);
-  CHECK(arg != nullptr && arg->region == umbriel::SnapRegion::Top);
-  CHECK(parseAction("window-snap:bottom", bind));
-  arg = umbriel::payloadIf<umbriel::SnapRegionArg>(bind);
-  CHECK(arg != nullptr && arg->region == umbriel::SnapRegion::Bottom);
-  CHECK(parseAction("window-unsnap", bind));
-  CHECK(bind.action == KeybindAction::WindowUnsnap);
-  CHECK(!parseAction("window-snap:top-left", bind));
-  CHECK(!parseAction("window-snap", bind));
-  CHECK(!parseAction("window-unsnap:left", bind));
+  CHECK(parseAction("window-set-region:top_left", bind));
+  CHECK(bind.action == KeybindAction::WindowSetRegion);
+  auto* arg = umbriel::payloadIf<umbriel::WindowRegionArg>(bind);
+  CHECK(arg != nullptr && arg->region == umbriel::WindowRegion::TopLeft);
+  CHECK(parseAction("window-set-region:top", bind));
+  arg = umbriel::payloadIf<umbriel::WindowRegionArg>(bind);
+  CHECK(arg != nullptr && arg->region == umbriel::WindowRegion::Top);
+  CHECK(parseAction("window-set-region:bottom", bind));
+  arg = umbriel::payloadIf<umbriel::WindowRegionArg>(bind);
+  CHECK(arg != nullptr && arg->region == umbriel::WindowRegion::Bottom);
+  CHECK(parseAction("window-clear-region", bind));
+  CHECK(bind.action == KeybindAction::WindowClearRegion);
+  CHECK(!parseAction("window-set-region:top-left", bind));
+  CHECK(!parseAction("window-set-region", bind));
+  CHECK(!parseAction("window-clear-region:left", bind));
+  CHECK(!parseAction("window-snap:left", bind));
+  CHECK(!parseAction("window-unsnap", bind));
+  CHECK(!parseAction("window-toggle-region:left", bind));
 }
 
 int main() { return RUN_TESTS(); }

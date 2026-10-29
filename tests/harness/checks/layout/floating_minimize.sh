@@ -42,7 +42,7 @@ wait_for_minimizable() {
     if jq -e -s --arg title "$title" --argjson expected "$expected" '
       [.[] | select(.event == "windows")] | last | .data
       | any(.[]; .title == $title and .minimizable == $expected)
-    ' "$EVENTS" > /dev/null 2>&1; then
+    ' "$EVENTS" >/dev/null 2>&1; then
       return 0
     fi
     sleep 0.1
@@ -51,7 +51,7 @@ wait_for_minimizable() {
   exit 1
 }
 
-msg() { "$UMBRIEL" msg "$@" > /dev/null; }
+msg() { "$UMBRIEL" msg "$@" >/dev/null; }
 
 foreign() {
   local reply
@@ -66,25 +66,25 @@ readonly CONTROL_FIFO="$UMBRIEL_RUNTIME_DIR/minimize-control"
 mkfifo "$CONTROL_FIFO"
 exec {control_fd}<>"$CONTROL_FIFO"
 
-cat >> "$UMBRIEL_CONFIG" <<'EOF'
+cat >>"$UMBRIEL_CONFIG" <<'EOF'
 [layout]
-mode = "floating"
+mode = "stacking"
 
 [animation]
 enabled = false
 EOF
 msg config-reload
 
-MINIMIZE_ON_STDIN=1 "$CLIENT" minimize-a 480 300 <&"$control_fd" > "$A_LOG" 2>&1 &
+MINIMIZE_ON_STDIN=1 "$CLIENT" minimize-a 480 300 <&"$control_fd" >"$A_LOG" 2>&1 &
 await_lines "$A_LOG" 'mapped$' 1
-"$CLIENT" minimize-b 480 300 > "$B_LOG" 2>&1 &
+"$CLIENT" minimize-b 480 300 >"$B_LOG" 2>&1 &
 await_lines "$B_LOG" 'mapped$' 1
 wait_for_field minimize-a floating true
 wait_for_field minimize-b floating true
 A=$(field_of minimize-a id)
 B=$(field_of minimize-b id)
 OUTPUT=$(field_of minimize-a output)
-"$UMBRIEL" subscribe windows > "$EVENTS" &
+"$UMBRIEL" subscribe windows >"$EVENTS" &
 wait_for_minimizable minimize-a true
 wait_for_minimizable minimize-b true
 
@@ -162,7 +162,7 @@ await_lines "$A_LOG" 'minimize-requested$' 2
 expect_field minimize-a minimized false
 
 # window-restore-minimized brings back the latest first.
-msg workspace-set-layout:floating
+msg workspace-set-layout:stacking
 wait_for_field minimize-a floating true
 wait_for_field minimize-b floating true
 wait_for_minimizable minimize-a true

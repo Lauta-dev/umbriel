@@ -9,7 +9,7 @@
 #include "view/effects.h"
 #include "view/floating.h"
 #include "view/presentation.h"
-#include "view/snap.h"
+#include "view/window_region.h"
 
 #include <algorithm>
 #include <array>
@@ -157,7 +157,7 @@ namespace umbriel {
     }
     [[nodiscard]] bool tiled() const { return m_tiled; }
     [[nodiscard]] bool floating() const { return !m_tiled; }
-    [[nodiscard]] bool layoutFloated() const { return m_layoutFloated; }
+    [[nodiscard]] bool floatedByStackingLayout() const { return m_floatedByStackingLayout; }
     [[nodiscard]] bool isAloneInLayout() const;
     [[nodiscard]] bool isOnlyWindowOnWorkspace() const;
     [[nodiscard]] const std::optional<std::string>& namedScrollingColumnName() const {
@@ -403,15 +403,15 @@ namespace umbriel {
     // Put a maximized float back in the box its settings give it now, after a layout, border, strut, or usable area
     // change. Does nothing unless that box moved, so every arrange can ask.
     void refitFloatingMaximized();
-    [[nodiscard]] std::optional<SnapRegion> snapRegion() const { return m_snapRegion; }
+    [[nodiscard]] std::optional<WindowRegion> region() const { return m_region; }
     [[nodiscard]] std::optional<wlr_box>
-    floatingSnappedBox(SnapRegion region, const wlr_box& usable, const ResolvedLayoutConfig* layout = nullptr) const;
-    [[nodiscard]] bool canSnap() const;
+    floatingRegionBox(WindowRegion region, const wlr_box& usable, const ResolvedLayoutConfig* layout = nullptr) const;
+    [[nodiscard]] bool canSetRegion(const Workspace* destination = nullptr) const;
     // A pointer drop can preserve its normal restore origin without moving the frame away from the release point.
-    bool snapTo(SnapRegion region, std::optional<FloatingPoint> restoreOrigin = std::nullopt);
-    void unsnap(bool animate = true);
-    void clearSnapState();
-    void refitFloatingSnapped();
+    bool setRegion(WindowRegion region, std::optional<FloatingPoint> restoreOrigin = std::nullopt);
+    void clearRegion(bool animate = true);
+    void clearRegionState();
+    void refitFloatingRegion();
     // The usable area an opening window is sized against: the target output's,
     // then its full layout box, then whatever sits under the cursor. A hotplug
     // race can leave an output with no usable area computed yet.
@@ -479,8 +479,8 @@ namespace umbriel {
     enum class TilePlacement : uint8_t { Layout, Detached };
     void setFloating(bool floating, bool focus = true, TilePlacement placement = TilePlacement::Layout);
     void toggleFloating(bool focus = true);
-    void floatForLayout();
-    void adoptLayoutFloat();
+    void floatForStackingLayout();
+    void adoptStackingLayoutFloat();
     void togglePinned();
     // Restore the global pinned scene layer after temporary drag reparenting.
     void restorePinnedSceneParent();
@@ -510,6 +510,8 @@ namespace umbriel {
     friend class Overview;
     friend class Workspace;
     friend class XwaylandWindow;
+
+    [[nodiscard]] bool canUseRegionGeometry() const;
 
     // Move the frame, and a lent shadow with it.
     void setScenePosition(int x, int y);
@@ -1026,15 +1028,15 @@ namespace umbriel {
     double m_openingScale = 1.0;
     int m_openingSlide = 0;
     bool m_tiled = false;
-    // Floating because its workspace floats every window; tiles again when moved to a tiling layout.
-    bool m_layoutFloated = false;
+    // Floating because its workspace uses stacking; tiles again when moved to a tiling layout.
+    bool m_floatedByStackingLayout = false;
     bool m_floatingMaximized = false;
     bool m_maximizedToEdges = false;
     bool m_restoreMaximizedToEdges = false;
-    std::optional<SnapRegion> m_snapRegion;
-    wlr_box m_snapRestoreBox{};
-    bool m_hasSnapRestoreBox = false;
-    wlr_box m_snappedBox{};
+    std::optional<WindowRegion> m_region;
+    wlr_box m_regionRestoreBox{};
+    bool m_hasRegionRestoreBox = false;
+    wlr_box m_regionBox{};
     wlr_box m_fullscreenRestoreBox{};
     bool m_hasFullscreenRestoreBox = false;
     bool m_pinned = false;

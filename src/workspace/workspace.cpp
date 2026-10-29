@@ -43,6 +43,15 @@ namespace umbriel {
 
     constexpr uint32_t kGroupCaps = EXT_WORKSPACE_GROUP_HANDLE_V1_GROUP_CAPABILITIES_CREATE_WORKSPACE;
 
+    void refreshDropZonePreview(Server& server) {
+      if (server.stopping()) {
+        return;
+      }
+      if (Cursor* cursor = server.cursor()) {
+        cursor->refreshDropZonePreview();
+      }
+    }
+
     // The bridge between the layout's opaque View identity and the client state it needs to size that view. Workspace
     // owns both sides, so it owns the lookup; layout/ stays free of view/ and its geometry stays testable.
     LayoutConstraints viewLayoutConstraints(const View* view) {
@@ -236,6 +245,7 @@ namespace umbriel {
       markArrange(false);
       m_group->output()->updateVrr();
       m_group->output()->updateHdr();
+      refreshDropZonePreview(*m_group->server());
     }
     m_group->server()->scheduleIpcWorkspacesEvent();
   }
@@ -351,12 +361,12 @@ namespace umbriel {
     }
     syncFloatingStack(view);
     applyVisibility();
-    if (attachToLayout || m_layoutMode == LayoutMode::Floating) {
+    if (attachToLayout || m_layoutMode == LayoutMode::Stacking) {
       layoutAttach(view, std::nullopt, std::nullopt, origin);
     }
     if (attachToLayout
-        && m_layoutMode != LayoutMode::Floating
-        && view->layoutFloated()
+        && m_layoutMode != LayoutMode::Stacking
+        && view->floatedByStackingLayout()
         && view->floating()
         && !view->pinned()) {
       view->setFloating(false, false);
@@ -482,11 +492,11 @@ namespace umbriel {
     if (view == nullptr || !view->mapped() || !view->tiled() || m_layout->columnOf(view) >= 0) {
       return;
     }
-    if (m_layoutMode == LayoutMode::Floating) {
+    if (m_layoutMode == LayoutMode::Stacking) {
       if (origin == LayoutAttachOrigin::OpeningView) {
-        view->adoptLayoutFloat();
+        view->adoptStackingLayoutFloat();
       } else {
-        view->floatForLayout();
+        view->floatForStackingLayout();
       }
       if (origin == LayoutAttachOrigin::OpeningView || origin == LayoutAttachOrigin::MovedView) {
         exitFullscreenForIncomingView(view);
@@ -850,7 +860,7 @@ namespace umbriel {
     for (View* view : m_views) {
       if (view != nullptr && !view->tiled()) {
         view->refitFloatingMaximized();
-        view->refitFloatingSnapped();
+        view->refitFloatingRegion();
       }
     }
     // The map-time IPC event can fire before this arrange runs, leaving the previous window positions in the listing.
@@ -1560,14 +1570,14 @@ namespace umbriel {
   }
 
   View* Workspace::focusAdjacent(int direction) {
-    if (m_layoutMode == LayoutMode::Floating) {
+    if (m_layoutMode == LayoutMode::Stacking) {
       return floatingFocusTarget(true, direction);
     }
     return preferRecentPeer(scrollingVertical() ? focusWithinLane(direction) : focusAlongStrip(direction));
   }
 
   View* Workspace::focusVertical(int direction) {
-    if (m_layoutMode == LayoutMode::Floating) {
+    if (m_layoutMode == LayoutMode::Stacking) {
       return floatingFocusTarget(false, direction);
     }
     return preferRecentPeer(scrollingVertical() ? focusAlongStrip(direction) : focusWithinLane(direction));
@@ -2426,7 +2436,7 @@ namespace umbriel {
     const bool isMovingFromScroll =
         (m_layoutMode == LayoutMode::Scrolling && layoutConfig.mode != LayoutMode::Scrolling);
     const bool isMovingToScroll = (m_layoutMode != LayoutMode::Scrolling && layoutConfig.mode == LayoutMode::Scrolling);
-    const bool fromFloating = m_layoutMode == LayoutMode::Floating;
+    const bool fromStacking = m_layoutMode == LayoutMode::Stacking;
     m_layoutConfig = std::move(layoutConfig);
     // The event payload is built when the idle runs, so scheduling here reports the mode this call installs, whether
     // it reconfigures the existing layout or replaces it below.
@@ -2444,6 +2454,7 @@ namespace umbriel {
         }
       }
       markArrange(true);
+      refreshDropZonePreview(*m_group->server());
       return;
     }
     // The members leave one layout and join another; the next arrange carries them there from their current boxes.
@@ -2467,9 +2478,9 @@ namespace umbriel {
         tiledViews.push_back(view);
       }
     }
-    if (m_layoutConfig.mode == LayoutMode::Floating) {
+    if (m_layoutConfig.mode == LayoutMode::Stacking) {
       for (View* view : tiledViews) {
-        view->floatForLayout();
+        view->floatForStackingLayout();
       }
       tiledViews.clear();
     } else {
@@ -2484,10 +2495,11 @@ namespace umbriel {
     for (View* view : tiledViews) {
       m_layout->insertView(view, static_cast<int>(m_layout->columns().size()));
     }
-    if (fromFloating) {
+    if (fromStacking) {
       const auto floats = m_floatingStack;
       for (View* view : floats) {
-        if (view->layoutFloated() && view->floating() && !view->pinned() && view->mapped()) {
+        view->clearRegionState();
+        if (view->floatedByStackingLayout() && view->floating() && !view->pinned() && view->mapped()) {
           view->setFloating(false, false);
         }
       }
@@ -2510,6 +2522,7 @@ namespace umbriel {
       }
     }
     markArrange();
+    refreshDropZonePreview(*m_group->server());
   }
 
   WorkspaceGroup::WorkspaceGroup(Server& server, Output& output) : m_server(&server), m_output(&output) {

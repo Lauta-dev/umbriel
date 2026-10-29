@@ -399,6 +399,9 @@ namespace umbriel {
     if (m_workspace == workspace) {
       return;
     }
+    if (workspace == nullptr || workspace->layoutMode() != LayoutMode::Stacking) {
+      clearRegionState();
+    }
     Output* previousOutput =
         m_workspace != nullptr && m_workspace->group() != nullptr ? m_workspace->group()->output() : nullptr;
     if (m_workspace != nullptr) {

@@ -401,19 +401,22 @@ UMBRIEL_TEST(effectActionLabelsPreserveSelectorsAndTargets) {
   }
 }
 
-UMBRIEL_TEST(floatingLayoutModeIsNamedInTheActionLabel) {
-  const std::vector<Keybind> binds = {layoutBind(XKB_KEY_f, umbriel::LayoutMode::Floating)};
+UMBRIEL_TEST(stackingLayoutModeIsNamedInTheActionLabel) {
+  const std::vector<Keybind> binds = {layoutBind(XKB_KEY_f, umbriel::LayoutMode::Stacking)};
   const auto rows = buildCheatsheetRows(binds);
   CHECK_EQ(rows.size(), size_t{1});
-  CHECK(rows[0].action.contains("floating"));
+  CHECK_EQ(rows[0].action, std::string{"workspace-set-layout: stacking"});
 }
 
-UMBRIEL_TEST(snapActionLabelsNameTheRegion) {
-  Keybind binding = bind(KeybindAction::WindowSnap, XKB_KEY_h);
-  binding.payload = umbriel::SnapRegionArg{.region = umbriel::SnapRegion::BottomLeft};
+UMBRIEL_TEST(regionActionLabelsNameTheRegion) {
+  Keybind binding = bind(KeybindAction::WindowSetRegion, XKB_KEY_h);
+  binding.payload = umbriel::WindowRegionArg{.region = umbriel::WindowRegion::BottomLeft};
   const auto rows = buildCheatsheetRows(std::vector<Keybind>{binding});
   CHECK_EQ(rows.size(), size_t{1});
-  CHECK(rows[0].action.contains("bottom_left"));
+  CHECK_EQ(rows[0].action, std::string{"window-set-region: bottom_left"});
+  const auto clearRows = buildCheatsheetRows(std::vector{bind(KeybindAction::WindowClearRegion, XKB_KEY_h)});
+  CHECK_EQ(clearRows.size(), size_t{1});
+  CHECK_EQ(clearRows[0].action, std::string{"window-clear-region"});
 }
 
 int main() { return RUN_TESTS(); }

@@ -294,7 +294,7 @@ namespace umbriel {
       if (column.views.empty()) {
         return;
       }
-      if (target.layoutMode() == LayoutMode::Floating) {
+      if (target.layoutMode() == LayoutMode::Stacking) {
         for (View* view : column.views) {
           view->moveToWorkspace(&target);
         }
@@ -1305,7 +1305,7 @@ namespace umbriel {
           return false;
         }
         View* view = *target;
-        if (view->workspace() != nullptr && view->workspace()->layoutMode() == LayoutMode::Floating) {
+        if (view->workspace() != nullptr && view->workspace()->layoutMode() == LayoutMode::Stacking) {
           return reject(error, "window-toggle-floating needs a tiling layout");
         }
         view->toggleFloating(false);
@@ -1316,7 +1316,7 @@ namespace umbriel {
           return true;
         }
         if (Workspace* workspace = activeWorkspace(server)) {
-          if (workspace->layoutMode() == LayoutMode::Floating) {
+          if (workspace->layoutMode() == LayoutMode::Stacking) {
             return reject(error, "window-toggle-floating needs a tiling layout");
           }
           workspace->toggleFocusedFloating();
@@ -1335,21 +1335,26 @@ namespace umbriel {
       return true;
     }
 
-    bool actionWindowSnap(Server& server, const Keybind& bind, std::string* error) {
+    bool actionWindowSetRegion(Server& server, const Keybind& bind, std::string* error) {
       View* view = placementTarget(server, {}, FocusSource::Layout).value_or(nullptr);
-      if (view == nullptr || view->tiled()) {
-        return reject(error, "window-snap needs a floating window");
+      if (view == nullptr
+          || view->tiled()
+          || view->workspace() == nullptr
+          || view->workspace()->layoutMode() != LayoutMode::Stacking) {
+        return reject(error, "window-set-region needs a floating window in the stacking layout");
       }
-      const auto* arg = payloadIf<SnapRegionArg>(bind);
-      if (arg == nullptr || !view->snapTo(arg->region)) {
-        return reject(error, "window-snap: the window cannot fit that region or its current state prevents snapping");
+      const auto* arg = payloadIf<WindowRegionArg>(bind);
+      if (arg == nullptr || !view->setRegion(arg->region)) {
+        return reject(
+            error, "window-set-region: the window cannot fit that region or its current state prevents placement"
+        );
       }
       return true;
     }
 
-    bool actionWindowUnsnap(Server& server, const Keybind&, std::string*) {
+    bool actionWindowClearRegion(Server& server, const Keybind&, std::string*) {
       if (View* view = placementTarget(server, {}, FocusSource::Layout).value_or(nullptr)) {
-        view->unsnap();
+        view->clearRegion();
       }
       return true;
     }
@@ -1654,7 +1659,7 @@ namespace umbriel {
         return true;
       }
       static constexpr std::array kFullCycle{
-          LayoutMode::Scrolling, LayoutMode::Dwindle, LayoutMode::Master, LayoutMode::Floating
+          LayoutMode::Scrolling, LayoutMode::Dwindle, LayoutMode::Master, LayoutMode::Stacking
       };
       const std::span<const LayoutMode> cycle = arg->toggleSequence.empty()
           ? std::span<const LayoutMode>(kFullCycle)
@@ -1913,7 +1918,7 @@ namespace umbriel {
       transfer(targetTiles, targetFloats, sourceWs);
 
       const auto rebuild = [](Workspace* dest, const LayoutCapture& tiles, const std::vector<View*>& floats) {
-        if (dest->layoutMode() == LayoutMode::Floating) {
+        if (dest->layoutMode() == LayoutMode::Stacking) {
           for (const LayoutMember& member : tiles.members) {
             if (member.view != nullptr) {
               dest->layoutAttach(member.view);
@@ -1927,7 +1932,7 @@ namespace umbriel {
           }
         }
         for (View* view : floats) {
-          if (dest->layoutMode() != LayoutMode::Floating && view->layoutFloated()) {
+          if (dest->layoutMode() != LayoutMode::Stacking && view->floatedByStackingLayout()) {
             view->setFloating(false, false);
           } else {
             view->restoreFloatingPosition();
@@ -2378,8 +2383,8 @@ namespace umbriel {
         &actionScratchpadWindowShowStep<-1>,
         &actionLayoutToggleSplit,
         &actionOutputSdrWhite,
-        &actionWindowSnap,
-        &actionWindowUnsnap,
+        &actionWindowSetRegion,
+        &actionWindowClearRegion,
     };
 
     consteval bool everyActionHasHandler() {

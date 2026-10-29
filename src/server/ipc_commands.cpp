@@ -132,8 +132,8 @@ namespace umbriel {
         return "dwindle";
       case LayoutMode::Master:
         return "master";
-      case LayoutMode::Floating:
-        return "floating";
+      case LayoutMode::Stacking:
+        return "stacking";
       }
       return "unknown";
     }
@@ -684,7 +684,7 @@ namespace umbriel {
       entry["tab_hidden"] = view.tabHidden();
       entry["minimizable"] = view.minimizable();
       entry["minimized"] = view.minimized();
-      entry["snap"] = view.snapRegion() ? nlohmann::json(snapRegionName(*view.snapRegion())) : nlohmann::json(nullptr);
+      entry["region"] = view.region() ? nlohmann::json(windowRegionName(*view.region())) : nlohmann::json(nullptr);
       entry["border_effect"] = effectSlotJson(view.effectSlot(EffectKind::Border), true);
       entry["window_effect"] = effectSlotJson(view.effectSlot(EffectKind::Window));
       // Workspace-local remembered focus. Seat-global activation is reported

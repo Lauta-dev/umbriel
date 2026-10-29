@@ -621,7 +621,7 @@ namespace umbriel {
     m_floatingMaximized = false;
     m_maximizedToEdges = false;
     m_hasFullscreenRestoreBox = false;
-    clearSnapState();
+    clearRegionState();
     m_restorePinnedAfterFullscreen = false;
     m_xCompositorFullscreen = false;
     if (m_pinned) {
@@ -700,7 +700,7 @@ namespace umbriel {
     const bool hadRuntimeEffects = m_effects.slot(EffectKind::Border).runtimeSelector.has_value()
         || m_effects.slot(EffectKind::Window).runtimeSelector.has_value();
     m_mapped = false;
-    m_layoutFloated = false;
+    m_floatedByStackingLayout = false;
     if (m_workspace != nullptr) {
       m_workspace->syncFloatingStack(this);
     }
@@ -890,7 +890,7 @@ namespace umbriel {
       }
 
       const bool layoutFloats =
-          (target != nullptr ? target->layoutMode() : resolveGlobalLayout(config()).mode) == LayoutMode::Floating;
+          (target != nullptr ? target->layoutMode() : resolveGlobalLayout(config()).mode) == LayoutMode::Stacking;
       wantTiled = wantTiled && !layoutFloats;
 
       // A window that opens as the only tiled one on its workspace is configured in its `match.is_alone` state right

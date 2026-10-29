@@ -4903,37 +4903,116 @@ title_bar_buttons = ["close"]
   CHECK(!resolve("other").titleBarButtons.has_value());
 }
 
-UMBRIEL_TEST(floatingLayoutLoadsGloballyAndPerWorkspace) {
+UMBRIEL_TEST(stackingLayoutLoadsGloballyAndPerWorkspace) {
   const TempConfig file;
   file.write(R"(
 [layout]
-mode = "floating"
+mode = "stacking"
 [[workspace]]
 name = "desk"
-layout.mode = "floating"
+layout.mode = "stacking"
 )");
   ConfigStore& store = umbriel::configStore();
   store.setRootPath(file.path(), true);
   CHECK(store.reload().success);
-  CHECK(store.config().layout.mode == LayoutMode::Floating);
+  CHECK(store.config().layout.mode == LayoutMode::Stacking);
   CHECK_EQ(store.config().workspaceRules.size(), size_t{1});
-  CHECK(store.config().workspaceRules[0].layout.mode == LayoutMode::Floating);
+  CHECK(store.config().workspaceRules[0].layout.mode == LayoutMode::Stacking);
 }
 
-UMBRIEL_TEST(windowSnappingDefaultsOnAndRejectsNonBooleans) {
+UMBRIEL_TEST(stackingDropZonesDefaultOnAndRejectNonBooleans) {
   const TempConfig file;
-  file.write("[input]\n");
+  file.write("[layout.stacking]\n");
   ConfigStore& store = umbriel::configStore();
   store.setRootPath(file.path(), true);
   CHECK(store.reload().success);
-  CHECK(store.config().input.windowSnapping);
-  file.write("[input]\nwindow_snapping = false\n");
+  CHECK(store.config().layout.stacking.dropZones);
+  CHECK(umbriel::resolveGlobalLayout(store.config()).stacking.dropZones);
+  file.write("[layout.stacking]\ndrop_zones = false\n");
+  const auto disabled = store.reload();
+  CHECK(disabled.success);
+  CHECK(disabled.change.layout);
+  CHECK(disabled.effects.workspaceLayout);
+  CHECK(!store.config().layout.stacking.dropZones);
+  CHECK(!umbriel::resolveGlobalLayout(store.config()).stacking.dropZones);
+  file.write("[layout.stacking]\ndrop_zones = 1\n");
   CHECK(store.reload().success);
-  CHECK(!store.config().input.windowSnapping);
-  file.write("[input]\nwindow_snapping = 1\n");
+  CHECK(store.config().layout.stacking.dropZones);
+  CHECK(containsDiagnostic(store, "layout.stacking.drop_zones"));
+  CHECK(!containsDiagnostic(store, "unknown key layout.stacking.drop_zones"));
+}
+
+UMBRIEL_TEST(stackingDropZonesResolveWorkspaceOverridesAndReloadInheritance) {
+  const TempConfig file;
+  const auto write = [&file](bool dropZones) {
+    file.write(std::string{"[layout.stacking]\ndrop_zones = "} + (dropZones ? "true\n" : "false\n") + R"(
+[[workspace]]
+name = "inherited"
+layout.mode = "stacking"
+[[workspace]]
+name = "enabled"
+layout.stacking.drop_zones = true
+[[workspace]]
+name = "disabled"
+layout.stacking.drop_zones = false
+)");
+  };
+  write(false);
+  ConfigStore& store = umbriel::configStore();
+  store.setRootPath(file.path(), true);
   CHECK(store.reload().success);
-  CHECK(store.config().input.windowSnapping);
-  CHECK(containsDiagnostic(store, "input.window_snapping"));
+  const auto resolve = [&store](std::string_view name) {
+    return umbriel::resolveWorkspaceLayout(
+        store.config(), {.connector = "DP-1", .make = {}, .model = {}, .serial = {}}, name, 0
+    );
+  };
+  CHECK(!resolve("inherited").stacking.dropZones);
+  CHECK(resolve("enabled").stacking.dropZones);
+  CHECK(!resolve("disabled").stacking.dropZones);
+  CHECK(!containsDiagnostic(store, "unknown key"));
+  write(true);
+  const auto enabled = store.reload();
+  CHECK(enabled.success);
+  CHECK(enabled.change.layout);
+  CHECK(enabled.effects.workspaceLayout);
+  CHECK(resolve("inherited").stacking.dropZones);
+  CHECK(resolve("enabled").stacking.dropZones);
+  CHECK(!resolve("disabled").stacking.dropZones);
+}
+
+UMBRIEL_TEST(stackingConfigRejectsRemovedNamesWithoutChangingFloatingWindowVocabulary) {
+  const TempConfig file;
+  file.write(R"(
+[layout]
+mode = "floating"
+new_exits_fullscreen = "floating"
+[layout.stacking]
+drop_zones = false
+[input]
+window_snapping = true
+window_drag_toggle = "floating"
+[[workspace]]
+name = "old-mode"
+layout.mode = "floating"
+[[window_rule]]
+match.is_floating = true
+default_floating = true
+)");
+  ConfigStore& store = umbriel::configStore();
+  store.setRootPath(file.path(), true);
+  CHECK(store.reload().success);
+  CHECK(store.config().layout.mode == LayoutMode::Scrolling);
+  CHECK(store.config().layout.newExitsFullscreen == umbriel::FullscreenExitScope::Floating);
+  CHECK(!store.config().layout.stacking.dropZones);
+  CHECK(store.config().input.windowDragToggle == WindowDragToggle::Floating);
+  CHECK_EQ(store.config().workspaceRules.size(), size_t{1});
+  CHECK(!store.config().workspaceRules[0].layout.mode.has_value());
+  CHECK_EQ(store.config().windowRules.size(), size_t{1});
+  CHECK(store.config().windowRules[0].matchFloating == true);
+  CHECK(store.config().windowRules[0].defaultFloating == true);
+  CHECK(containsDiagnostic(store, "layout.mode"));
+  CHECK(containsDiagnostic(store, "unknown key input.window_snapping"));
+  CHECK(!containsDiagnostic(store, "unknown key layout.stacking"));
 }
 
 UMBRIEL_TEST(wideScrollingExtentsLoadUpToTheWideCeiling) {

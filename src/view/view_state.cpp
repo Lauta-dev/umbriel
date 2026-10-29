@@ -691,7 +691,7 @@ namespace umbriel {
     }
   }
 
-  void View::floatForLayout() {
+  void View::floatForStackingLayout() {
     if (m_tiled) {
       const bool fullscreen = scheduledFullscreen() || currentFullscreen();
       const auto restore = m_hasFullscreenRestoreBox ? std::optional{m_fullscreenRestoreBox} : std::nullopt;
@@ -706,12 +706,12 @@ namespace umbriel {
         }
       }
     }
-    m_layoutFloated = true;
+    m_floatedByStackingLayout = true;
   }
 
-  void View::adoptLayoutFloat() {
+  void View::adoptStackingLayoutFloat() {
     m_tiled = false;
-    m_layoutFloated = true;
+    m_floatedByStackingLayout = true;
     const bool fullscreen = scheduledFullscreen() || currentFullscreen();
     setSceneParent(fullscreen ? m_workspace->fullscreenTree() : m_workspace->viewLayer(false));
     m_workspace->syncFloatingStack(this);
@@ -721,8 +721,8 @@ namespace umbriel {
     if (!floating
         && placement == TilePlacement::Layout
         && m_workspace != nullptr
-        && m_workspace->layoutMode() == LayoutMode::Floating) {
-      m_layoutFloated = true;
+        && m_workspace->layoutMode() == LayoutMode::Stacking) {
+      m_floatedByStackingLayout = true;
       return;
     }
     assert(!attached());
@@ -746,9 +746,9 @@ namespace umbriel {
     if (!floating && m_minimized) {
       setMinimized(false);
     }
-    m_layoutFloated = false;
+    m_floatedByStackingLayout = false;
     if (!floating) {
-      clearSnapState();
+      clearRegionState();
     }
     if (m_maximizedToEdges) {
       setMaximizedToEdges(false, false);

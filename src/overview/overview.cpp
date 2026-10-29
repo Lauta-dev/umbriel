@@ -3438,8 +3438,8 @@ namespace umbriel {
       }
     }
 
-    if (target != nullptr && target->layoutMode() == LayoutMode::Floating && view->tiled()) {
-      view->floatForLayout();
+    if (target != nullptr && target->layoutMode() == LayoutMode::Stacking && view->tiled()) {
+      view->floatForStackingLayout();
     }
     if (target != nullptr && view->tiled()) {
       applyDrop(
@@ -3475,7 +3475,7 @@ namespace umbriel {
       }
     } else if (m_dragSourceWorkspace != nullptr && view->tiled() && m_dragSourceColumn >= 0) {
       // Cancelled or dropped on nothing: put the tile back where it came from.
-      if (m_dragSourceWorkspace->layoutMode() == LayoutMode::Floating) {
+      if (m_dragSourceWorkspace->layoutMode() == LayoutMode::Stacking) {
         m_dragSourceWorkspace->layoutAttach(view);
       } else if (m_dragSourceWidth.has_value()) {
         m_dragSourceWorkspace->layout().insertView(view, m_dragSourceColumn);

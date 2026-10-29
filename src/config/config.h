@@ -115,6 +115,10 @@ namespace umbriel {
       std::optional<MasterPosition> position;
       bool operator==(const Master&) const = default;
     } master;
+    struct Stacking {
+      std::optional<bool> dropZones;
+      bool operator==(const Stacking&) const = default;
+    } stacking;
     struct Tabs {
       std::optional<ColumnDisplay> defaultDisplay;
       std::optional<NewTabPosition> newTabPosition;
@@ -174,6 +178,10 @@ namespace umbriel {
       MasterPosition position = MasterPosition::Left;
       bool operator==(const Master&) const = default;
     } master;
+    struct Stacking {
+      bool dropZones = true;
+      bool operator==(const Stacking&) const = default;
+    } stacking;
     struct Tabs {
       ColumnDisplay defaultDisplay = ColumnDisplay::Normal;
       NewTabPosition newTabPosition = NewTabPosition::End;
@@ -1003,6 +1011,10 @@ namespace umbriel {
         MasterPosition position = MasterPosition::Left;
         bool operator==(const Master&) const = default;
       } master;
+      struct Stacking {
+        bool dropZones = true;
+        bool operator==(const Stacking&) const = default;
+      } stacking;
       struct Tabs {
         ColumnDisplay defaultDisplay = ColumnDisplay::Normal;
         NewTabPosition newTabPosition = NewTabPosition::End;
@@ -1089,8 +1101,6 @@ namespace umbriel {
       // Let a client start an interactive move from its own drag area
       // (xdg_toplevel.move), such as a CSD title bar or Chromium tab strip.
       bool clientWindowDrag = true;
-      // Preview and apply half or quarter placement while dragging to output edges.
-      bool windowSnapping = true;
       // Retarget an interactive window drag with the free mouse button: float
       // it, pin it, or leave the drag alone.
       WindowDragToggle windowDragToggle = WindowDragToggle::None;

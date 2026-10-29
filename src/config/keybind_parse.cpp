@@ -136,8 +136,8 @@ namespace umbriel {
       if (name == "dwindle") {
         return LayoutMode::Dwindle;
       }
-      if (name == "floating") {
-        return LayoutMode::Floating;
+      if (name == "stacking") {
+        return LayoutMode::Stacking;
       }
       if (name == "master") {
         return LayoutMode::Master;
@@ -384,6 +384,7 @@ namespace umbriel {
         {"submap", "<name>", "Enter a submap layer, or leave one with 'reset'", KeybindAction::Submap,
          ActionArgKind::Command},
         {"window-center", "", "Center the focused floating window on its output", KeybindAction::WindowCenter},
+        {"window-clear-region", "", "Restore the window's normal position and size", KeybindAction::WindowClearRegion},
         {"window-close", "[<window-id>]", "Close the focused window, or the given window", KeybindAction::WindowClose,
          ActionArgKind::OptionalWindowId},
         {"window-consume-from-left", "", "Pull the left column's window into the focused column",
@@ -502,11 +503,10 @@ namespace umbriel {
          KeybindAction::WindowRestoreMinimized},
         {"window-set-primary-extent", "<fraction>", "Set the focused area's primary extent fraction",
          KeybindAction::WindowSetPrimaryExtent, ActionArgKind::Fraction},
+        {"window-set-region", "<left|right|top|bottom|top_left|top_right|bottom_left|bottom_right>",
+         "Place the stacking window in a half or quarter", KeybindAction::WindowSetRegion, ActionArgKind::WindowRegion},
         {"window-set-secondary-extent", "<fraction>", "Set the focused area's secondary extent fraction",
          KeybindAction::WindowSetSecondaryExtent, ActionArgKind::Fraction},
-        {"window-snap", "<left|right|top|bottom|top_left|top_right|bottom_left|bottom_right>",
-         "Snap the floating window, or restore it when already there", KeybindAction::WindowSnap,
-         ActionArgKind::SnapRegion},
         {"window-swap-down", "", "Swap with the window below", KeybindAction::WindowSwapDown},
         {"window-swap-left", "", "Swap with the window to the left", KeybindAction::WindowSwapLeft},
         {"window-swap-next", "", "Swap with the next window in layout order", KeybindAction::WindowSwapNext},
@@ -524,7 +524,6 @@ namespace umbriel {
         {"window-toggle-pinned", "", "Pin the focused window above other windows", KeybindAction::TogglePinned},
         {"window-toggle-scratchpad", "[<scratchpad>]", "Move the focused window to or from a scratchpad",
          KeybindAction::WindowToggleScratchpad, ActionArgKind::OptionalScratchpad},
-        {"window-unsnap", "", "Restore the floating window's size before snapping", KeybindAction::WindowUnsnap},
         {"workspace-focus-last", "", "Focus the previously active workspace", KeybindAction::WorkspaceFocusLast},
         {"workspace-move-down", "", "Move the focused workspace down the list", KeybindAction::WorkspaceMoveDown},
         {"workspace-move-to-output-down", "", "Move every workspace window to the output below",
@@ -538,7 +537,7 @@ namespace umbriel {
         {"workspace-move-up", "", "Move the focused workspace up the list", KeybindAction::WorkspaceMoveUp},
         {"workspace-next", "", "Switch to the next workspace on this output", KeybindAction::WorkspaceNext},
         {"workspace-previous", "", "Switch to the previous workspace on this output", KeybindAction::WorkspacePrevious},
-        {"workspace-set-layout", "<scrolling|dwindle|master|floating|toggle[:mode1,mode2,...]>",
+        {"workspace-set-layout", "<scrolling|dwindle|master|stacking|toggle[:mode1,mode2,...]>",
          "Set the active workspace's layout mode", KeybindAction::WorkspaceSetLayout, ActionArgKind::LayoutMode},
         {"workspace-swap-active-output-down", "", "Swap active workspace windows with the output below",
          KeybindAction::WorkspaceSwapActiveOutputDown},
@@ -817,11 +816,11 @@ namespace umbriel {
           return true;
         }
         break;
-      case ActionArgKind::SnapRegion:
+      case ActionArgKind::WindowRegion:
         if (takeActionArg(value, spec, arg)) {
-          if (const auto region = snapRegionNamed(arg)) {
+          if (const auto region = windowRegionNamed(arg)) {
             output.action = spec.action;
-            output.payload = SnapRegionArg{.region = *region};
+            output.payload = WindowRegionArg{.region = *region};
             return true;
           }
         }

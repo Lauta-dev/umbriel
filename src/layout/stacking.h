@@ -3,9 +3,9 @@
 #include "layout/layout.h"
 
 namespace umbriel {
-  class FloatingLayout final : public Layout {
+  class StackingLayout final : public Layout {
   public:
-    [[nodiscard]] LayoutMode mode() const override { return LayoutMode::Floating; }
+    [[nodiscard]] LayoutMode mode() const override { return LayoutMode::Stacking; }
     [[nodiscard]] int columnOf(const View*) const override { return -1; }
     [[nodiscard]] int rowOf(const View*) const override { return -1; }
     [[nodiscard]] LayoutCapture captureState() const override;

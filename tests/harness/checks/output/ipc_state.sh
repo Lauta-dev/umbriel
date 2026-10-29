@@ -9,6 +9,7 @@ readonly EVENTS="$UMBRIEL_RUNTIME_DIR/output-ipc-events.jsonl"
 
 printf '\n[output.HEADLESS-1]\nworkspaces = 2\n' >> "$UMBRIEL_CONFIG"
 "$UMBRIEL" msg config-reload > /dev/null
+"$UMBRIEL" settle > /dev/null
 "$UMBRIEL" subscribe outputs > "$EVENTS" &
 
 # Waits until the newest pushed outputs event satisfies a jq predicate on its data.
