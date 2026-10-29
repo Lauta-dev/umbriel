@@ -192,6 +192,17 @@ umbrielfx_dep = declare_dependency(
 )
 
 if build_tests
+  umbrielfx_hdr_capture_test = executable(
+    'umbrielfx-hdr-capture-test',
+    'tests/hdr_capture.c',
+    c_args: umbrielfx_c_args,
+    dependencies: umbrielfx_deps,
+    include_directories: [umbrielfx_inc, umbrielfx_internal_inc],
+    link_with: umbrielfx_lib,
+    build_by_default: false,
+  )
+  test('hdr-sdr-capture', umbrielfx_hdr_capture_test, suite: 'umbrielfx')
+
   umbrielfx_color_test = executable(
     'umbrielfx-color-test',
     'tests/color.c',
