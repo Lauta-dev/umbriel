@@ -30,7 +30,7 @@ default_floating = true
 default_position = { x = 173, y = 109, anchor = "top_left" }
 CONFIG
 "$UMBRIEL" msg config-reload >/dev/null
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 "$UMBRIEL_FRACTIONAL_CLIENT" floating-live 480 300 >"$UMBRIEL_RUNTIME_DIR/client.log" 2>&1 &
 title_bar_wait_box floating-live 480x300+173+109
 "$UMBRIEL" settle >/dev/null
@@ -56,7 +56,7 @@ title_bar_wait_box floating-live 1264x676+8+36
 "$UMBRIEL" settle >/dev/null
 title_bar_wait_box floating-live 480x300+523+314
 # A regular floating window in a scrolling workspace keeps its configured drag opacity.
-"$UMBRIEL" msg workspace-set-layout:scrolling >/dev/null
+"$UMBRIEL" msg workspace-set-layout scrolling >/dev/null
 "$UMBRIEL" clock-advance 3000 >/dev/null
 "$UMBRIEL" settle >/dev/null
 title_bar_wait_box floating-live 480x300+523+314

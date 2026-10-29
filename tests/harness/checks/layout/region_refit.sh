@@ -24,7 +24,7 @@ for _ in $(seq 120); do
 done
 "$UMBRIEL_FRACTIONAL_CLIENT" refit-region 480 300 >"$UMBRIEL_RUNTIME_DIR/refit-region.log" 2>&1 &
 title_bar_wait_field refit-region floating true
-"$UMBRIEL" msg window-set-region:left >/dev/null
+"$UMBRIEL" msg window-set-region left >/dev/null
 title_bar_wait_box refit-region 500x532+8+36
 "$UMBRIEL_LAYER_CLIENT" HEADLESS-1 40 >"$UMBRIEL_RUNTIME_DIR/panel.log" 2>&1 &
 panel_pid=$!

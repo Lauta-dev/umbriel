@@ -328,8 +328,8 @@ namespace umbriel {
     // Registers a view created for a new toplevel of either shell role.
     View& adoptView(std::unique_ptr<View> view);
 
-    // Runs a parsed action. Shared by the keybind path and the IPC `msg` command.
-    bool executeKeybindAction(const Keybind& bind, std::string* error = nullptr, bool* cooldownBlocked = nullptr);
+    // Runs a parsed action, whether a keybind, hot corner, overview shortcut, or IPC request triggered it.
+    bool executeAction(const Keybind& bind, std::string* error = nullptr, bool* cooldownBlocked = nullptr);
     bool cooldownAllows(const Keybind& bind);
     // Re-evaluates alone rules on every workspace whose arrange is still pending.
     void refreshPendingAloneRules();

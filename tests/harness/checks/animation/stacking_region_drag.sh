@@ -32,7 +32,7 @@ match.title = "^stacking-region-motion$"
 default_position = { x = 173, y = 109, anchor = "top_left" }
 CONFIG
 "$UMBRIEL" msg config-reload >/dev/null
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 "$UMBRIEL_FRACTIONAL_CLIENT" stacking-region-motion 480 300 >"$UMBRIEL_RUNTIME_DIR/client.log" 2>&1 &
 title_bar_wait_box stacking-region-motion 480x300+173+109
 "$UMBRIEL" settle >/dev/null
@@ -58,7 +58,7 @@ read -r x y width height <<<"$bounds"
   exit 1
 }
 # Setting the region during its animation must not restore, restart, or jump the presented frame.
-"$UMBRIEL" msg window-set-region:left >/dev/null
+"$UMBRIEL" msg window-set-region left >/dev/null
 title_bar_wait_field stacking-region-motion region left
 grim "$UMBRIEL_RUNTIME_DIR/repeated.png"
 repeated=$("$UMBRIEL_PIXEL_PROBE" "$UMBRIEL_RUNTIME_DIR/repeated.png" bbox 'r > 0.9 && g < 0.1 && b < 0.1')

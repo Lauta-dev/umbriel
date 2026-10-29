@@ -16,7 +16,7 @@ zoom = 0.5
 CONFIG
 "$UMBRIEL" msg config-reload >/dev/null
 "$UMBRIEL" msg output-focus-next >/dev/null
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 "$UMBRIEL" msg output-focus-next >/dev/null
 "$UMBRIEL_FRACTIONAL_CLIENT" card 480 300 >"$UMBRIEL_RUNTIME_DIR/card.log" 2>&1 &
 title_bar_wait_field card floating false

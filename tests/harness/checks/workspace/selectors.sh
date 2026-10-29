@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # harness: outputs=2
 # Workspace selectors preserve their kind: bare numbers are positions on the cursor-preferred output, while names
-# resolve globally. Quotes reach numeric-looking names, output qualifiers address one group, and bad
+# resolve globally. `--name` reaches numeric-looking names, `--output` addresses one group, and bad
 # targets report useful errors.
 set -euo pipefail
 
@@ -9,20 +9,22 @@ readonly BASELINE="$(< "$UMBRIEL_CONFIG")"
 readonly WORKSPACE="${UMBRIEL_WORKSPACE_CLIENT:-./build-debug/tests/workspace-client}"
 
 accepts() {
-  if ! out=$("$UMBRIEL" msg "$1" 2>&1); then
-    echo "expected '$1' to be accepted, got: $out"
+  if ! out=$("$UMBRIEL" msg "$@" 2>&1); then
+    echo "expected '$*' to be accepted, got: $out"
     return 1
   fi
 }
 
+# Usage: rejects_with <expected-error> <action> [args...]
 rejects_with() {
-  local action=$1 expected=$2
-  if out=$("$UMBRIEL" msg "$action" 2>&1); then
-    echo "expected '$action' to be rejected, but it succeeded"
+  local expected=$1
+  shift
+  if out=$("$UMBRIEL" msg "$@" 2>&1); then
+    echo "expected '$*' to be rejected, but it succeeded"
     return 1
   fi
   if [[ $out != *"$expected"* ]]; then
-    echo "expected '$action' to mention '$expected', got: $out"
+    echo "expected '$*' to mention '$expected', got: $out"
     return 1
   fi
 }
@@ -69,10 +71,10 @@ expect_workspace_layout() {
   fi
 }
 
-rejects_with "workspace-switch:1/NOPE" "unknown output: NOPE"
-rejects_with "workspace-switch:nosuchname" "unknown workspace: nosuchname"
-rejects_with "window-move-to-workspace:1/NOPE" "unknown output: NOPE"
-rejects_with "column-move-to-workspace:1/NOPE" "unknown output: NOPE"
+rejects_with "unknown output: NOPE" workspace-switch 1 --output NOPE
+rejects_with "unknown workspace: nosuchname" workspace-switch nosuchname
+rejects_with "unknown output: NOPE" window-move-to-workspace 1 --output NOPE
+rejects_with "unknown output: NOPE" column-move-to-workspace 1 --output NOPE
 
 # A bare numeric selector stays positional on the cursor-preferred output even
 # when another output has a static workspace with the same displayed label.
@@ -101,23 +103,23 @@ index = 3
 output = "HEADLESS-1"
 layout.mode = "master"'
 expect_workspace HEADLESS-1 3 3 false
-accepts "workspace-switch:2/HEADLESS-1"
+accepts workspace-switch 2 --output HEADLESS-1
 accepts "workspace-move-down"
 expect_focused HEADLESS-1 3 false
 expect_workspace HEADLESS-1 2 2 false
 expect_workspace HEADLESS-1 3 3 false
 expect_workspace_layout HEADLESS-1 2 dwindle
 expect_workspace_layout HEADLESS-1 3 master
-accepts "workspace-switch:vesktop/HEADLESS-2"
-accepts "workspace-switch:2"
+accepts workspace-switch vesktop --output HEADLESS-2
+accepts workspace-switch 2
 expect_focused HEADLESS-2 chat true
-accepts "workspace-switch:3"
+accepts workspace-switch 3
 expect_focused HEADLESS-2 3 false
 
 # Numeric labels from a static count or a dynamic anonymous workspace never
 # participate in name lookup.
-rejects_with 'workspace-switch:"3"/HEADLESS-2' "unknown workspace on output HEADLESS-2: 3"
-rejects_with 'workspace-switch:"3"/HEADLESS-1' "unknown workspace on output HEADLESS-1: 3"
+rejects_with "unknown workspace on output HEADLESS-2: 3" workspace-switch --name 3 --output HEADLESS-2
+rejects_with "unknown workspace on output HEADLESS-1: 3" workspace-switch --name 3 --output HEADLESS-1
 
 # An explicit static name array supplies exact numeric names. Bare numbers stay
 # positional on the cursor-preferred dynamic output.
@@ -135,20 +137,20 @@ output = "HEADLESS-2"
 [[workspace]]
 name = "chat"
 output = "HEADLESS-2"'
-accepts "workspace-switch:vesktop/HEADLESS-2"
-accepts "workspace-switch:3"
+accepts workspace-switch vesktop --output HEADLESS-2
+accepts workspace-switch 3
 expect_focused HEADLESS-2 3 false
-accepts 'workspace-switch:"3"'
+accepts workspace-switch --name 3
 expect_focused HEADLESS-1 3 true
 
-# A quoted numeric name stays global, while a qualified bare number remains a
+# A `--name` numeric selector stays global, while a qualified bare number remains a
 # position. A unique ordinary name can select its owning output globally.
-accepts 'workspace-switch:"2"'
+accepts workspace-switch --name 2
 expect_focused HEADLESS-1 2 true
-accepts "workspace-switch:2/HEADLESS-2"
+accepts workspace-switch 2 --output HEADLESS-2
 expect_focused HEADLESS-2 chat true
-accepts 'workspace-switch:"3"/HEADLESS-1'
-accepts "workspace-switch:vesktop"
+accepts workspace-switch --name 3 --output HEADLESS-1
+accepts workspace-switch vesktop
 expect_focused HEADLESS-2 vesktop true
 
 # Moving a whole dynamic workspace reuses an empty fixed position instead of
@@ -181,7 +183,7 @@ if [[ -z $source_id ]]; then
   echo "fixed-inventory source window did not map"
   exit 1
 fi
-"$UMBRIEL" msg "window-focus-warp:$source_id" > /dev/null
+"$UMBRIEL" msg window-focus-warp "$source_id" > /dev/null
 source_workspace=$("$UMBRIEL" windows --json | jq -r --arg id "$source_id" '.[] | select(.id == $id) | .workspace')
 if [[ $source_workspace != HEADLESS-2:* ]]; then
   echo "fixed-inventory source did not map on HEADLESS-2: $source_workspace"
@@ -235,9 +237,9 @@ if [[ -z $full_source_id ]]; then
   echo "full fixed-inventory source window did not map"
   exit 1
 fi
-"$UMBRIEL" msg "window-focus-warp:$full_source_id" > /dev/null
+"$UMBRIEL" msg window-focus-warp "$full_source_id" > /dev/null
 full_source_workspace=$("$UMBRIEL" windows --json | jq -r --arg id "$full_source_id" '.[] | select(.id == $id) | .workspace')
-rejects_with "workspace-move-to-output-left" "output has no empty fixed workspace"
+rejects_with "output has no empty fixed workspace" "workspace-move-to-output-left"
 if [[ $("$UMBRIEL" windows --json | jq -r --arg id "$full_source_id" '.[] | select(.id == $id) | .workspace') != "$full_source_workspace" ]]; then
   echo "rejected full fixed-inventory transfer moved the source window"
   exit 1
@@ -264,7 +266,7 @@ workspaces = "dynamic"
 [[workspace]]
 name = "vesktop"
 output = "HEADLESS-2"'
-"$UMBRIEL" msg "window-focus-warp:$full_source_id" > /dev/null
+"$UMBRIEL" msg window-focus-warp "$full_source_id" > /dev/null
 fixed_two_id=$("$UMBRIEL" workspaces --json | jq -r '.[] | select(.output == "HEADLESS-1" and .name == "TWO") | .id')
 accepts "workspace-move-to-output-left"
 transferred_workspace=$("$UMBRIEL" windows --json | jq -r --arg id "$full_source_id" '.[] | select(.id == $id) | .workspace')

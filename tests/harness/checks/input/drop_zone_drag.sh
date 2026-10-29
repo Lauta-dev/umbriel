@@ -45,7 +45,7 @@ title_bar_wait_field region-drag region left
 title_bar_wait_box region-drag 628x704+8+8
 "$UMBRIEL" msg window-clear-region >/dev/null
 title_bar_wait_box region-drag 480x300+173+109
-"$UMBRIEL" msg window-set-region:left >/dev/null
+"$UMBRIEL" msg window-set-region left >/dev/null
 title_bar_wait_field region-drag region left
 title_bar_wait_box region-drag 628x704+8+8
 # A click below the threshold keeps the region. Moving restores the preferred size under the grip.

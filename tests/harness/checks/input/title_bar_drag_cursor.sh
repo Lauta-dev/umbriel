@@ -22,7 +22,7 @@ cursor_hash() {
 }
 
 for layout in scrolling stacking; do
-  "$UMBRIEL" msg "workspace-set-layout:$layout" >/dev/null
+  "$UMBRIEL" msg workspace-set-layout "$layout" >/dev/null
   for decoration in server client; do
     title=drag-cursor-$layout-$decoration
     if [[ $decoration == server ]]; then

@@ -179,7 +179,7 @@ for _ in $(seq 100); do
   sleep 0.025
 done
 views | jq -e 'length == 1 and .[0].floating and (.[0].x == 490) and (.[0].y == 280)' > /dev/null
-"$UMBRIEL" msg "window-focus:$native_id" > /dev/null
+"$UMBRIEL" msg window-focus "$native_id" > /dev/null
 await_lines "$NATIVE_LOG" keyboard-enter 2 0.025
 native_leaves=$(events "$NATIVE_LOG" keyboard-leave)
 sync_client before-notification

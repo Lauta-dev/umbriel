@@ -449,8 +449,8 @@ UMBRIEL_TEST(implicitScratchpadActionsAcceptOnlyTheDefaultTarget) {
   file.write(R"(
 [keybinds]
 "Mod+1" = "scratchpad-toggle"
-"Mod+2" = "window-move-to-scratchpad:default"
-"Mod+3" = "scratchpad-focus-next:other"
+"Mod+2" = "window-move-to-scratchpad default"
+"Mod+3" = "scratchpad-focus-next other"
 )");
 
   ConfigStore& store = umbriel::configStore();
@@ -482,9 +482,9 @@ name = "term"
 
 [keybinds]
 "Mod+1" = "window-restore-from-scratchpad"
-"Mod+2" = "window-toggle-scratchpad:term"
-"Mod+3" = "scratchpad-toggle:missing"
-"Mod+4" = "window-move-to-scratchpad:default"
+"Mod+2" = "window-toggle-scratchpad term"
+"Mod+3" = "scratchpad-toggle missing"
+"Mod+4" = "window-move-to-scratchpad default"
 )");
 
   ConfigStore& store = umbriel::configStore();
@@ -847,8 +847,8 @@ UMBRIEL_TEST(keybindTableLoadsAllowWhenLocked) {
 
   file.write(
       "[keybinds]\n"
-      "\"XF86AudioRaiseVolume\" = { action = \"spawn:volume-up\", allow_when_locked = true }\n"
-      "\"XF86AudioLowerVolume\" = \"spawn:volume-down\"\n"
+      "\"XF86AudioRaiseVolume\" = { action = \"spawn volume-up\", allow_when_locked = true }\n"
+      "\"XF86AudioLowerVolume\" = \"spawn volume-down\"\n"
   );
   CHECK(store.reload().success);
   CHECK_EQ(store.config().keybinds.size(), size_t{2});
@@ -872,7 +872,7 @@ UMBRIEL_TEST(keybindTableLoadsAllowWhenInhibited) {
   file.write(
       "[keybinds]\n"
       "\"Mod+Escape\" = { action = \"shortcuts-inhibit-toggle\", allow_when_inhibited = true }\n"
-      "\"Mod+Return\" = \"spawn:terminal\"\n"
+      "\"Mod+Return\" = \"spawn terminal\"\n"
   );
   CHECK(store.reload().success);
   CHECK_EQ(store.config().keybinds.size(), size_t{2});
@@ -895,8 +895,8 @@ UMBRIEL_TEST(keybindTablePreservesWorkspaceReferenceKinds) {
 
   file.write(
       "[keybinds]\n"
-      "\"Mod+2\" = \"workspace-switch:2\"\n"
-      "\"Mod+Ctrl+2\" = 'workspace-switch:\"2\"'\n"
+      "\"Mod+2\" = \"workspace-switch 2\"\n"
+      "\"Mod+Ctrl+2\" = 'workspace-switch --name 2'\n"
   );
   CHECK(store.reload().success);
   CHECK_EQ(store.config().keybinds.size(), size_t{2});
@@ -924,12 +924,12 @@ UMBRIEL_TEST(keybindTableLoadsCooldown) {
   ConfigStore& store = umbriel::configStore();
   store.setRootPath(file.path(), true);
 
-  file.write("[keybinds]\n\"Mod+Return\" = { action = \"spawn:terminal\", cooldown_ms = 150 }\n");
+  file.write("[keybinds]\n\"Mod+Return\" = { action = \"spawn terminal\", cooldown_ms = 150 }\n");
   CHECK(store.reload().success);
   CHECK(std::ranges::any_of(store.config().keybinds, [](const auto& bind) { return bind.cooldownMs == 150; }));
   CHECK(!containsDiagnostic(store, "cooldown_ms"));
 
-  file.write("[keybinds]\n\"Mod+Return\" = { action = \"spawn:terminal\", cooldown_ms = 3600001 }\n");
+  file.write("[keybinds]\n\"Mod+Return\" = { action = \"spawn terminal\", cooldown_ms = 3600001 }\n");
   CHECK(store.reload().success);
   CHECK(std::ranges::any_of(store.config().keybinds, [](const auto& bind) { return bind.cooldownMs == 3600000; }));
   CHECK(containsDiagnostic(store, "cooldown_ms = 3600001 out of range, clamped to 3600000"));
@@ -942,9 +942,9 @@ UMBRIEL_TEST(keybindTableLoadsPostActionSubmaps) {
 
   file.write(
       "[keybinds]\n"
-      "\"submap[outer],1\" = { action = \"workspace-switch:2\", submap = \"reset\" }\n"
-      "\"submap[outer],2\" = { action = \"workspace-switch:3\", submap = \"inner\", repeat = true }\n"
-      "\"submap[outer],3\" = { action = \"workspace-switch:4\", repeat = true }\n"
+      "\"submap[outer],1\" = { action = \"workspace-switch 2\", submap = \"reset\" }\n"
+      "\"submap[outer],2\" = { action = \"workspace-switch 3\", submap = \"inner\", repeat = true }\n"
+      "\"submap[outer],3\" = { action = \"workspace-switch 4\", repeat = true }\n"
   );
   CHECK(store.reload().success);
 
@@ -967,9 +967,9 @@ UMBRIEL_TEST(keybindTableLoadsPostActionSubmaps) {
 
   file.write(
       "[keybinds]\n"
-      "\"submap[outer],1\" = { action = \"workspace-switch:2\", submap = \"\" }\n"
-      "\"submap[outer],2\" = { action = \"workspace-switch:3\", submap = \"disable\" }\n"
-      "\"submap[outer],3\" = { action = \"workspace-switch:4\", submap = \"invalid]name\" }\n"
+      "\"submap[outer],1\" = { action = \"workspace-switch 2\", submap = \"\" }\n"
+      "\"submap[outer],2\" = { action = \"workspace-switch 3\", submap = \"disable\" }\n"
+      "\"submap[outer],3\" = { action = \"workspace-switch 4\", submap = \"invalid]name\" }\n"
   );
   CHECK(store.reload().success);
   CHECK(containsDiagnostic(store, "submap must be a non-empty name"));
@@ -983,7 +983,7 @@ UMBRIEL_TEST(hotCornersLoadActionsAndValidate) {
 
   file.write(
       "[hot_corners.top_left]\nenabled = true\ndelay_ms = 750\naction = \"overview-open\"\n"
-      "[hot_corners.bottom_right]\nenabled = true\ndelay_ms = 125\naction = \"spawn:notify-send corner\"\n"
+      "[hot_corners.bottom_right]\nenabled = true\ndelay_ms = 125\naction = \"spawn notify-send corner\"\n"
   );
   CHECK(store.reload().success);
   CHECK(store.config().hotCorners.corners[0].enabled);
@@ -1023,11 +1023,11 @@ action = "scratchpad-toggle"
 
 [hot_corners.top_right]
 enabled = true
-action = "window-move-to-scratchpad:default"
+action = "window-move-to-scratchpad default"
 
 [hot_corners.bottom_left]
 enabled = true
-action = "scratchpad-focus-next:missing"
+action = "scratchpad-focus-next missing"
 )");
   CHECK(store.reload().success);
 
@@ -1060,11 +1060,11 @@ action = "scratchpad-toggle"
 
 [hot_corners.top_right]
 enabled = true
-action = "window-toggle-scratchpad:term"
+action = "window-toggle-scratchpad term"
 
 [hot_corners.bottom_left]
 enabled = true
-action = "window-restore-from-scratchpad:missing"
+action = "window-restore-from-scratchpad missing"
 )");
   CHECK(store.reload().success);
 
@@ -4401,23 +4401,23 @@ kind = 'border'
 kind = 'window'
 choose = ['window']
 [keybinds]
-'Mod+F1' = 'effect-window-set:window'
-'Mod+F2' = 'effect-window-set:windows'
-'Mod+F3' = 'effect-window-cycle:windows'
-'Mod+F4' = 'effect-window-set:missing'
-'Mod+F5' = 'effect-window-set:border'
-'Mod+F6' = 'effect-window-cycle:window'
-'Mod+F7' = 'effect-window-set:off'
+'Mod+F1' = 'effect-window-set window'
+'Mod+F2' = 'effect-window-set windows'
+'Mod+F3' = 'effect-window-cycle windows'
+'Mod+F4' = 'effect-window-set missing'
+'Mod+F5' = 'effect-window-set border'
+'Mod+F6' = 'effect-window-cycle window'
+'Mod+F7' = 'effect-window-set off'
 'Mod+F8' = 'effect-window-cycle'
-'submap[effects],F9' = 'effect-window-set:missing'
-'Mod+F10' = 'effect-window-set:window'
-'Mod+f10' = 'effect-window-set:missing'
+'submap[effects],F9' = 'effect-window-set missing'
+'Mod+F10' = 'effect-window-set window'
+'Mod+f10' = 'effect-window-set missing'
 [hot_corners.top_left]
 enabled = false
-action = 'effect-screen-set:window'
+action = 'effect-screen-set window'
 [hot_corners.top_right]
 enabled = true
-action = 'effect-window-cycle:windows'
+action = 'effect-window-cycle windows'
 )");
   auto& store = umbriel::configStore();
   store.setRootPath(file.path(), true);
@@ -4450,18 +4450,18 @@ UMBRIEL_TEST(replacedEffectActionsLeaveNoReferencesOrDiagnostics) {
   TempConfig file;
   file.writeInclude(R"(
 [keybinds]
-'Mod+F1' = 'effect-window-set:missing'
+'Mod+F1' = 'effect-window-set missing'
 [hot_corners.top_left]
-action = 'effect-cursor-set:missing'
+action = 'effect-cursor-set missing'
 )");
   file.write("[include]\nfiles = ['" + file.includeName() + "']\n" + R"(
 [effects.preset.window]
 kind = 'window'
 [keybinds]
-'Mod+F1' = 'effect-window-set:window'
+'Mod+F1' = 'effect-window-set window'
 [hot_corners.top_left]
 enabled = false
-action = 'effect-window-set:window'
+action = 'effect-window-set window'
 )");
   auto& store = umbriel::configStore();
   store.setRootPath(file.path(), true);

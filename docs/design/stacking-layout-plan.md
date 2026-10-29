@@ -52,12 +52,12 @@ The stacking-only restriction on `window-set-region` is a deliberate behavior ch
 ### Region actions
 
 ```text
-window-set-region:left
-window-set-region:top_right
+window-set-region left
+window-set-region top_right
 window-clear-region
 ```
 
-- `window-set-region:<region>` selects one of the existing eight halves or quarters. Keep `left`, `right`, `top`, `bottom`, `top_left`, `top_right`, `bottom_left`, and `bottom_right` as the argument values.
+- `window-set-region <region>` selects one of the existing eight halves or quarters. Keep `left`, `right`, `top`, `bottom`, `top_left`, `top_right`, `bottom_left`, and `bottom_right` as the argument values.
 - Setting the current region is idempotent: it must not restore the window, overwrite its restore box, or restart an unchanged placement animation. Setting another region changes placement while preserving the original normal position and size.
 - `window-clear-region` removes the placement and restores the original normal position and size. Clearing a window with no active region is a no-op.
 - Pointer placement uses the same idempotent region-setting operation. Dropping into the same region again must not implicitly restore the window. Restoring free placement is a separate operation.
@@ -84,10 +84,10 @@ Preserve the current halves on all four edges, quarters in all four corners, cli
 
 - Change layout choices in `src/config/fields_layout.cpp` for the global default and workspace rules.
 - Update the independent action parser, allowed-value diagnostics, and help in `src/config/keybind_parse.cpp`.
-- Update `workspace-set-layout:stacking`, custom cycles containing `stacking`, and the default cycle in `src/server/actions.cpp`.
+- Update `workspace-set-layout stacking`, custom cycles containing `stacking`, and the default cycle in `src/server/actions.cpp`.
 - Update layout labels in `src/scene/cheatsheet_rows.cpp` and the workspace layout serializer in `src/server/ipc_commands.cpp`, including subscription/event payloads that use it.
 - Keep per-window floating fields unchanged. A window in a workspace reported as `"layout": "stacking"` may still be reported as `"floating": true`.
-- Reject `mode = "floating"`, `workspace-set-layout:floating`, and old tokens in custom cycles through normal validation. Preserve valid window-kind uses of `floating`.
+- Reject `mode = "floating"`, `workspace-set-layout floating`, and old tokens in custom cycles through normal validation. Preserve valid window-kind uses of `floating`.
 - Audited the current local Noctalia Umbriel adapter and broader source for changed layout, region, action, and option names. That checked consumer does not consume the changed names and needs no coordinated source update. No `noctalia-docs` files were edited.
 
 ### 3. Replace the region actions and placement vocabulary

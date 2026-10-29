@@ -22,12 +22,12 @@ spawn() {
   LOG_CONFIGURES=1 "$UMBRIEL_FRACTIONAL_CLIENT" "$1" 480 300 >"$UMBRIEL_RUNTIME_DIR/$1.log" 2>&1 &
   title_bar_wait_field "$1" floating true
 }
-focus() { "$UMBRIEL" msg "window-focus-warp:$(title_bar_window "$1" | jq -r .id)" >/dev/null; }
-layout() { "$UMBRIEL" msg "workspace-set-layout:$1" >/dev/null; }
+focus() { "$UMBRIEL" msg window-focus-warp "$(title_bar_window "$1" | jq -r .id)" >/dev/null; }
+layout() { "$UMBRIEL" msg workspace-set-layout "$1" >/dev/null; }
 reject_toggle() {
   local reply
-  if reply=$("$UMBRIEL" msg "$1" 2>&1); then
-    echo "$1 unexpectedly succeeded"
+  if reply=$("$UMBRIEL" msg "$@" 2>&1); then
+    echo "$* unexpectedly succeeded"
     return 1
   fi
   [[ $reply == *"window-toggle-floating needs a tiling layout"* ]]
@@ -39,7 +39,7 @@ first=$(rg -m 1 '^configure ' "$UMBRIEL_RUNTIME_DIR/a.log")
 spawn b
 title_bar_wait_box b 480x300+432+242
 reject_toggle window-toggle-floating
-reject_toggle "window-toggle-floating:$(title_bar_window a | jq -r .id)"
+reject_toggle window-toggle-floating "$(title_bar_window a | jq -r .id)"
 focus b
 "$UMBRIEL" msg window-focus-left >/dev/null
 title_bar_wait_field a focused true

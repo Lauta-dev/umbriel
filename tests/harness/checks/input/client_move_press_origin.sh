@@ -38,7 +38,7 @@ for scale in 1 2; do
   width=$(jq -r '.width' <<<"$output")
   height=$(jq -r '.height' <<<"$output")
   for layout in scrolling stacking; do
-    "$UMBRIEL" msg "workspace-set-layout:$layout" >/dev/null
+    "$UMBRIEL" msg workspace-set-layout "$layout" >/dev/null
     for timing in partial crossed; do
       title=press-origin-$scale-$layout-$timing
       log=$UMBRIEL_RUNTIME_DIR/$title.log

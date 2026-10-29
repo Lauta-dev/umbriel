@@ -24,7 +24,7 @@ CONFIG
 title_bar_wait_box region-action 480x300+173+109
 title_bar_window region-action | jq -e 'has("region") and (has("snap") | not)' >/dev/null
 set_region() {
-  "$UMBRIEL" msg "window-set-region:$1" >/dev/null
+  "$UMBRIEL" msg window-set-region "$1" >/dev/null
   title_bar_wait_field region-action region "$1"
 }
 set_region left
@@ -62,13 +62,13 @@ set_region top_left
 title_bar_wait_field region-action title_bar true
 title_bar_wait_box region-action 628x320+8+36
 # A manual size adjustment ends region placement instead of being refit on the next arrange.
-"$UMBRIEL" msg window-modify-width-right:0.1 >/dev/null
+"$UMBRIEL" msg window-modify-width-right 0.1 >/dev/null
 title_bar_wait_field region-action region null
 # A fixed-size client larger than a quarter cannot region.
 FIXED_SIZE=1 "$UMBRIEL_SUBSURFACE_CLIENT" fixed-region 700 500 >"$UMBRIEL_RUNTIME_DIR/fixed.log" 2>&1 &
 title_bar_wait_field fixed-region floating true
-"$UMBRIEL" msg "window-focus-warp:$(title_bar_window fixed-region | jq -r .id)" >/dev/null
-if reply=$("$UMBRIEL" msg window-set-region:top_left 2>&1); then
+"$UMBRIEL" msg window-focus-warp "$(title_bar_window fixed-region | jq -r .id)" >/dev/null
+if reply=$("$UMBRIEL" msg window-set-region top_left 2>&1); then
   echo "fixed-size client unexpectedly placed"
   exit 1
 fi
@@ -77,14 +77,14 @@ echo "region actions preserve normal geometry and respect client constraints"
 
 # A client can acknowledge the region while retaining its old buffer dimensions. Fullscreen must remember the region
 # target, so its exit configures the placed dimensions rather than adopting that stale buffer as the restore size.
-"$UMBRIEL" msg workspace-set-layout:stacking >/dev/null
+"$UMBRIEL" msg workspace-set-layout stacking >/dev/null
 HOLD_SIZE=1 LOG_CONFIGURES=1 "$UMBRIEL_FRACTIONAL_CLIENT" pending-region 480 300 >"$UMBRIEL_RUNTIME_DIR/pending.log" 2>&1 &
 title_bar_wait_field pending-region floating true
-"$UMBRIEL" msg window-set-region:left >/dev/null
+"$UMBRIEL" msg window-set-region left >/dev/null
 await_lines "$UMBRIEL_RUNTIME_DIR/pending.log" 'configure 628x676' 1
 "$UMBRIEL" settle >/dev/null
 before=$(rg -c '^configure 628x676$' "$UMBRIEL_RUNTIME_DIR/pending.log")
-"$UMBRIEL" msg window-set-region:left >/dev/null
+"$UMBRIEL" msg window-set-region left >/dev/null
 "$UMBRIEL" settle >/dev/null
 title_bar_wait_field pending-region region left
 after=$(rg -c '^configure 628x676$' "$UMBRIEL_RUNTIME_DIR/pending.log")

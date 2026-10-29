@@ -49,7 +49,7 @@ expect_background() {
 
 ids=$("$UMBRIEL" windows --json | jq -r '.[].id')
 for id in $ids; do
-  "$UMBRIEL" msg "window-focus:$id" >/dev/null
+  "$UMBRIEL" msg window-focus "$id" >/dev/null
   expect_background "before overview"
   "$UMBRIEL" msg overview-open >/dev/null
   "$UMBRIEL" settle >/dev/null
@@ -57,7 +57,7 @@ for id in $ids; do
   expect_background "after overview"
 done
 for id in $ids; do
-  "$UMBRIEL" msg "window-focus:$id" >/dev/null
+  "$UMBRIEL" msg window-focus "$id" >/dev/null
   expect_background "after IPC refocus"
 done
 echo "opaque title bars retain their background across overview and IPC refocus with blur"

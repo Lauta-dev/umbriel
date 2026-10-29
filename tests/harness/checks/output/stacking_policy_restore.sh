@@ -61,8 +61,8 @@ done
   echo "floating recovery changed geometry: $before -> $(snapshot)"
   exit 1
 }
-"$UMBRIEL" msg "window-focus-warp:$(title_bar_window policy | jq -r .id)" >/dev/null
-"$UMBRIEL" msg workspace-set-layout:scrolling >/dev/null
+"$UMBRIEL" msg window-focus-warp "$(title_bar_window policy | jq -r .id)" >/dev/null
+"$UMBRIEL" msg workspace-set-layout scrolling >/dev/null
 title_bar_wait_field policy floating false
 title_bar_wait_field explicit floating true
 echo "fractionally scaled floating placement and output recovery verified"
