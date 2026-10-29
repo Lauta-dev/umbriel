@@ -327,14 +327,16 @@ namespace umbriel {
     return keepTitleBarReachable(origin, titleBarHeight(), usable);
   }
 
-  void View::placeInUsableArea(const std::optional<WindowPosition>& position) {
+  void View::placeInUsableArea(
+      const std::optional<WindowPosition>& position, std::optional<std::array<int, 2>> placementSize
+  ) {
     if (attached()) {
       return;
     }
     const wlr_box usable = floatingUsableArea();
 
-    std::optional<std::array<int, 2>> placementSize;
-    const bool automatic = !position
+    const bool automatic = !placementSize
+        && !position
         && transientParent() == nullptr
         && m_workspace != nullptr
         && m_workspace->layoutMode() == LayoutMode::Floating
@@ -369,9 +371,10 @@ namespace umbriel {
       // shows over any panel, so the whole output counts as visible for it.
       const wlr_box shownIn = parent->scheduledFullscreen() ? parent->fullscreenArea() : usable;
       const wlr_box& geo = geometryBox();
-      const int width = geo.width > 0 ? geo.width : usable.width;
-      const int height = geo.height > 0 ? geo.height : usable.height;
-      origin = centeredOverShown(parent->targetBox(), shownIn, width, height);
+      const auto size = placementSize.value_or(
+          std::array{geo.width > 0 ? geo.width : usable.width, geo.height > 0 ? geo.height : usable.height}
+      );
+      origin = centeredOverShown(parent->targetBox(), shownIn, size[0], size[1]);
     } else if (m_workspace != nullptr && m_workspace->layoutMode() == LayoutMode::Floating) {
       const int border = borderInset();
       const int bar = titleBarHeight();

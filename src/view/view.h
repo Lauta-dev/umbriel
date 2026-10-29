@@ -777,7 +777,10 @@ namespace umbriel {
         const wlr_box usable, const std::optional<WindowPosition>& position = std::nullopt,
         const std::optional<std::array<int, 2>> size = std::nullopt
     );
-    void placeInUsableArea(const std::optional<WindowPosition>& position = std::nullopt);
+    void placeInUsableArea(
+        const std::optional<WindowPosition>& position = std::nullopt,
+        std::optional<std::array<int, 2>> placementSize = std::nullopt
+    );
     // The output box a fullscreen window covers: its workspace's output, else the one under it.
     [[nodiscard]] wlr_box fullscreenArea() const;
     void setPinned(bool pinned, bool focus);
@@ -883,6 +886,8 @@ namespace umbriel {
     // Latest settled opening rules, plus every earlier resolution considered. The history keeps an earlier one-shot
     // value from replaying when independent identity signals temporarily remove and then restore it.
     ResolvedWindowRule m_initialRules;
+    // Rule dimensions sent in the opening floating configure; zero leaves that axis to the client.
+    std::array<int, 2> m_openingFloatingRuleSize{};
     std::vector<ResolvedWindowRule> m_initialRuleHistory;
     WindowRuleState m_initialRuleState;
     std::optional<std::string> m_initialRulesAppId;
